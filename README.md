@@ -64,7 +64,7 @@ pine-wilt-disease-3d-monitor/
 
 1\. 用 IDEA 打开 `backend` 目录
 
-2\. 在运行配置的环境变量里设置：`DB\\\\\\\\\\\\\\\_PASSWORD=数据库密码`
+2\. 在运行配置的环境变量里设置：`DB_PASSWORD=数据库密码`
 
 3\. 运行 `SongcaiNematodeBackendApplication`
 
@@ -76,7 +76,7 @@ pine-wilt-disease-3d-monitor/
 
 1\. 进入 `frontend` 目录
 
-2\. 创建 `.env.local` 文件，写入一行：`VITE\\\\\\\\\\\\\\\_CESIUM\\\\\\\\\\\\\\\_TOKEN=你的Cesium Ion Token`
+2\. 创建 `.env.local` 文件，写入一行：`VITE_CESIUM\\\\\\\\\\\\\\\_TOKEN=你的Cesium Ion Token`
 
 3\. 执行 `pnpm install`
 
