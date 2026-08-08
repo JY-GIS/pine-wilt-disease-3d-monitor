@@ -23,7 +23,7 @@ pine-wilt-disease-3d-monitor/
 ## 技术栈
 
 - 前端：Vue 3、Vite、Cesium、Pinia、ECharts、Turf.js
-- 后端：Spring Boot、MyBatis、PostgreSQL + PostGIS
+- 后端：Spring Boot 3.5、MyBatis、PostgreSQL + PostGIS
 
 ## 本地运行
 
