@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>demo</title>
+
+  <!-- 添加 Cesium 样式 -->
+  <link href="https://unpkg.com/cesium@1.142.0/Build/Cesium/Widgets/widgets.css" rel="stylesheet">
+
+
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+    }
+  </style>
+
+</head>
+
+<body>
+  <div id="app"></div>
+
+  <!-- 添加 Cesium JS（必须在 main.js 之前加载） -->
+  <script src="https://unpkg.com/cesium@1.142.0/Build/Cesium/Cesium.js"></script>
+
+  <script type="module" src="/src/main.js"></script>
+</body>
+
+</html>

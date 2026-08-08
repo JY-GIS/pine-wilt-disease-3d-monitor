@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.songcai.mapper.AdminDivisionMapper">
+    <!--
+      findAllProvincesWithStats
+      职责：查所有省级行政区 + 各自病树统计 + 多边形 GeoJSON
+      返回类型：com.songcai.pojo.ProvinceStats
+      MyBatis 自动做下划线→驼峰映射：
+        tree_count → treeCount
+        gb_code   → gbCode
+        grade1    → grade1（已经是驼峰了，不需要转）
+    -->
+    <select id="findAllProvincesWithStats"
+            resultType="com.songcai.pojo.ProvinceStats">
+        SELECT r.id,r.name,r.gb_code,COUNT(d.tree_id) AS tree_count,
+               count(d.tree_id) FILTER (where d.grade = 1) AS grade1,
+               count(d.tree_id) FILTER (where d.grade = 2) AS grade2,
+               count(d.tree_id) FILTER (where d.grade = 3) AS grade3,
+               count(d.tree_id) FILTER (where d.grade = 4) AS grade4,
+               count(d.tree_id) FILTER (where d.grade = 5) AS grade5,
+                ST_ASGEOJSON(r.geom) AS geojson,
+                ST_ASGEOJSON(ST_Multi(st_boundary(r.geom))) AS boundary
+            from admin_region r left join diseased_trees d
+                on ST_Within(d.geom,r.geom)
+            WHERE r.level = 'province'
+            group by r.id, r.name, r.gb_code, r.geom
+            order by r.id
+    </select>
+
+    <!--
+      ================================================================
+      ★ findCitiesByProvinceGbCode（第 2 步）
+      职责：查询某个省的全部城市 + 各自病树统计 + 多边形 GeoJSON + 边界线
+      ================================================================
+      【为什么是跨表前缀 JOIN】
+        - admin_region 表存省（34 行），city 表存市（~375 行），分属两张表
+        - 关联方式：LEFT(c.gb_code, 5) = LEFT(#{provinceGbCode}, 5)
+          前 5 位是省级编码段（如 156340 = 安徽），所有安徽城市的 gb_code
+          前 5 位都是 156340
+        - 比 parent_id 更简单：不依赖任何中间字段，只靠编码规则
+      【返回类型】
+        复用 com.songcai.pojo.ProvinceStats（字段一模一样）
+        城市没有 id 字段时返回 null，前端不依赖 id
+      【参数】
+        #{provinceGbCode} —— 9 位天地图省码，如 "156340000"（安徽省）
+    -->
+    <select id="findCitiesByProvinceGbCode"
+            resultType="com.songcai.pojo.ProvinceStats">
+        select
+            c.name,c.gb_code,
+            count(d.tree_id) AS tree_count,
+            COUNT(d.tree_id) FILTER (WHERE d.grade = 1) AS grade1,
+            COUNT(d.tree_id) FILTER (WHERE d.grade = 2) AS grade2,
+            COUNT(d.tree_id) FILTER (WHERE d.grade = 3) AS grade3,
+            COUNT(d.tree_id) FILTER (WHERE d.grade = 4) AS grade4,
+            COUNT(d.tree_id) FILTER (WHERE d.grade = 5) AS grade5,
+            ST_AsGeoJSON(c.geom) AS geojson,
+            ST_AsGeoJSON(ST_Multi(ST_Boundary(c.geom))) AS boundary
+        FROM city c
+                 LEFT JOIN diseased_trees d
+            on ST_Within(d.geom,c.geom)
+        where left(c.gb_code,5) = left(#{provinceGbCode},5)
+        GROUP BY c.gb_code,c.name, c.gb_code, c.geom
+        order by c.gb_code
+    </select>
+
+
+
+</mapper>

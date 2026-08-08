@@ -1,0 +1,20 @@
+spring:
+  application:
+    name: songcai-nematode-backend
+
+  # 配置数据库的连接信息
+  datasource:
+    url: jdbc:postgresql://localhost:5432/songcai
+    username: postgres
+    password: ${DB_PASSWORD}
+
+# 配置mybatis的日志输出
+mybatis:
+  configuration:
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+    map-underscore-to-camel-case: true   #开启驼峰命名映射开关
+
+#配置事务管理日志级别
+logging:
+  leve:
+    org.springframework.jdbc.support.JdbcTransactionManager:debug

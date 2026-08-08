@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <!-- 控制台输出 -->
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+            <!--格式化输出：%d 表示日期，%thread 表示线程名，%-5level表示级别从左显示5个字符宽度，%logger显示日志记录器的名称， %msg表示日志消息，%n表示换行符 -->
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{50}-%msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <!-- 系统文件输出 -->
+    <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <!-- 日志文件输出的文件名, %i表示序号 -->
+            <FileNamePattern>D:/songcai-%d{yyyy-MM-dd}-%i.log</FileNamePattern>
+            <!-- 最多保留的历史日志文件数量 -->
+            <MaxHistory>30</MaxHistory>
+            <!-- 最大文件大小，超过这个大小会触发滚动到新文件，默认为 10MB -->
+            <maxFileSize>10MB</maxFileSize>
+        </rollingPolicy>
+
+        <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+            <!--格式化输出：%d 表示日期，%thread 表示线程名，%-5level表示级别从左显示5个字符宽度，%msg表示日志消息，%n表示换行符 -->
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{50}-%msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <!-- 日志输出级别 -->          <!-- 大于等于日志级别才会输出  <root level="info">  -->
+    <root level="info">                 <!-- 改为 off / OFF 关闭所有日志 -->
+        <appender-ref ref="STDOUT" />      <!-- 往控制台当中输出 -->
+        <appender-ref ref="FILE" />        <!-- 往文件当中输出 -->
+    </root>
+</configuration>
+
+        <!--
+【级别排序】日志级别由低到高：trace < debug < info < warn < error
+级别越高，输出日志越少；配置某一级别后，只会打印该级别及更高级别的日志
+
+ 日志级别：trace
+ 说明：追踪，记录程序运行轨迹 【使用很少】
+ 记录方式：log.trace("...")
+
+ 日志级别：debug
+ 说明：调试，记录程序调试过程中的信息，实际应用中一般将其视为最低级别 【使用较多】
+ 记录方式：log.debug("...")
+
+ 日志级别：info
+ 说明：记录一般信息，描述程序运行的关键事件，如：网络连接、io操作 【使用较多】
+ 记录方式：log.info("...")
+
+ 日志级别：warn
+ 说明：警告信息，记录潜在有害的情况 【使用较多】
+ 记录方式：log.warn("...")
+
+ 日志级别：error
+ 说明：错误信息 【使用较多】
+ 记录方式：log.error("...")
+       -->
