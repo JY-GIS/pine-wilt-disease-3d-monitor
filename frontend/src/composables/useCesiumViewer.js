@@ -119,3 +119,15 @@ export function useCesiumViewer() {
 export function getViewer() {
     return viewerInstance
 }
+
+// ==================== 销毁入口 ====================
+/**
+ * 销毁 Cesium Viewer 并清空单例
+ * 在 MainView 卸载时调用，避免再次进入时复用旧实例导致绿屏
+ */
+export function destroyViewer() {
+    if (viewerInstance) {
+        viewerInstance.destroy()
+        viewerInstance = null
+    }
+}

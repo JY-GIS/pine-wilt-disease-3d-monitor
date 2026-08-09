@@ -19,6 +19,16 @@ export const API = {
     // 基础地址
     baseURL: BASE_URL,
 
+    // 登录/管理 - 界面
+    login: `${BASE_URL}/login`, // POST, body: { username, password }
+    users: {
+        list: `${BASE_URL}/users`,
+        delete: (userId) => `${BASE_URL}/users?userId=${userId}`,
+        add: `${BASE_URL}/users`,
+        updateName: (userId) => `${BASE_URL}/users/${userId}/username`,
+        updatePhone: (userId) => `${BASE_URL}/users/${userId}/phone`,
+    },
+
     // GeoSceneOnline 图层
     geoSceneOnline: {
         featureServer: 'https://www.geosceneonline.cn/server/rest/services/Hosted/diseased_trees/FeatureServer/0',
