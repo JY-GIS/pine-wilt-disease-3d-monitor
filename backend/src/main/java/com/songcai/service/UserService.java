@@ -20,6 +20,6 @@ public interface UserService {
 
     void updatePhone(String userId, String phone);
 
-    LoginInfo login(User user);
+    LoginInfo login(String username,String password);
 }
 

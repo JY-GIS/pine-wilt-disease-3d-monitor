@@ -18,9 +18,9 @@ public class LoginController {
     private UserService userService;
 
     @PostMapping("/login")
-    public Result login(@RequestBody User user){
-        log.info("登录:{}",user);
-        LoginInfo info = userService.login(user);
+    public Result login(String username,String password){
+        log.info("登录:{},{}",username,password);
+        LoginInfo info = userService.login(username,password);
         if(info != null){
             return Result.success(info);
         }

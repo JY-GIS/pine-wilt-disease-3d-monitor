@@ -26,7 +26,7 @@ public interface UserMapper {
     @Update("update users set phone = #{phone} where user_id = #{userId}")
     void updatePhone(@Param("userId") String userId,@Param("phone") String phone);
 
-    @Select("select * from users where username = #{username} and user_id = #{userId}")
-    User selectByUsernameAndUserId(User user);
+    @Select("select * from users where username = #{username} and password = #{password}")
+    User login(@Param("username") String name, @Param("password") String password);
 
 }

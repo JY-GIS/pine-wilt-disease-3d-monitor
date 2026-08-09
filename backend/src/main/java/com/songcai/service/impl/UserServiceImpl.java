@@ -6,6 +6,7 @@ import com.songcai.pojo.LoginInfo;
 import com.songcai.pojo.User;
 import com.songcai.service.UserService;
 import com.songcai.utils.JwtUtils;
+import io.jsonwebtoken.security.Password;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -59,10 +60,9 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public LoginInfo login(User user) {
-        user.setUserId(user.getPassword());
+    public LoginInfo login(String username,String password) {
         // 1、调用 mapper接口
-        User u = UserMapper.selectByUsernameAndUserId(user);
+        User u = UserMapper.login(username, password);
         // 2、判断是否存在这个调查员
         if(u != null){
             log.info("登录成功,员工信息:{}",u);
