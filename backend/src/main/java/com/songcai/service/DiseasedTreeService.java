@@ -32,4 +32,10 @@ public interface DiseasedTreeService {
     String showAllBuffer(Integer radius);
 
     List<DiseasedTree> findByPolygon(String polygonGeoJson);
+
+    // ===== 时空趋势分析：月度聚合 =====
+    List<MonthlyStats> monthlyStats();
+    List<MonthlyStats> monthlyStatsByRegion(String gbCode,String level);
+
+
 }

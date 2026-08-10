@@ -52,5 +52,66 @@
         </foreach>
     </select>
 
+    <!-- ===== 时空趋势分析：全国月度聚合 ===== -->
+    <!--  MySQL 用 DATE_FORMAT，PostgreSQL 用 DATE_TRUNC
+      SQL 要点：
+        DATE_TRUNC('month', survey_date) → 把日期截断到月初
+        TO_CHAR(..., 'YYYY-MM')          → 格式化为字符串，前端直接用
+        SUM(...) OVER (ORDER BY ...)     → 窗口函数，逐月累加
+        AVG(longitude) / AVG(latitude)   → 当月新增病树算术平均重心
+    -->
+    <select id="monthlyStats"
+            resultType="com.songcai.pojo.MonthlyStats">
+        select
+            to_char(date_trunc('month',survey_date),'YYYY-MM') AS month,
+            count(*) as newCount,
+            sum(count(*)) over (order by date_trunc('month',survey_date)) AS cumulativeCount,
+            AVG(longitude) as centerLng,
+            AVG(latitude) as centerLat
+        from diseased_trees
+        WHERE survey_date IS NOT NULL
+        group by date_trunc('month',survey_date)
+        order by month
+    </select>
+
+    <!-- ===== 时空趋势分析：按行政区月度聚合（省/市） ===== -->
+    <!--
+      ★ 为什么用 <choose> 而不是两条独立 SQL：
+        省 JOIN admin_region，市 JOIN city，两张表不同，但主查询结构一样。
+        用 <choose> 根据 level 参数动态选择 JOIN 的表和过滤条件，
+        比写两个几乎相同的 <select> 更易维护。
+
+      ★ ST_Within 空间 JOIN 的性能：
+        - 全国 400 条病树 + 34 个省面，JOIN 毫秒级
+        - 如果未来数据量增大，建议给 diseased_trees.geom 建 GIST 索引
+    -->
+    <select id="monthlyStatsByRegion"
+            resultType="com.songcai.pojo.MonthlyStats">
+        select
+            TO_CHAR(DATE_TRUNC('month', d.survey_date), 'YYYY-MM') AS month,
+            COUNT(*) AS newCount,
+            SUM(COUNT(*)) OVER (ORDER BY DATE_TRUNC('month', d.survey_date)) AS cumulativeCount,
+            AVG(d.longitude) AS centerLng,
+            AVG(d.latitude) AS centerLat
+        FROM diseased_trees d
+        <choose>
+            <when test="level == 'province'">
+                inner join admin_region r on ST_Within(d.geom,r.geom)
+                where r.gb_code = #{gbCode}
+                    AND r.level = 'province'
+            </when>
+            <when test="level == 'city'">
+                INNER JOIN city c ON ST_Within(d.geom, c.geom)
+                WHERE c.gb_code = #{gbCode}
+            </when>
+            <otherwise>
+                WHERE 1 = 0
+                <!-- 非法 level 参数 → 返回空结果，防止全表扫描 -->
+            </otherwise>
+        </choose>
+        AND d.survey_date IS NOT NULL
+        GROUP BY DATE_TRUNC('month', d.survey_date)
+        ORDER BY month
+    </select>
 
 </mapper>

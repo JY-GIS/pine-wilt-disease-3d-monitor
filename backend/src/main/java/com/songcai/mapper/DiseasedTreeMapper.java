@@ -4,10 +4,12 @@ import com.songcai.pojo.DiseasedTree;
 import com.songcai.pojo.DiseasedTreeQueryParam;
 //import com.songcai.pojo.DiseasedTreesGradeStatistics;
 import com.songcai.pojo.DiseasedTressSearchParam;
+import com.songcai.pojo.MonthlyStats;
 import org.apache.ibatis.annotations.*;
 
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
 
 @Mapper
 public interface DiseasedTreeMapper {
@@ -74,7 +76,7 @@ public interface DiseasedTreeMapper {
     public String showAllBuffer(Integer radius);
 
 
-    // ===== 新增：多边形圈选查询 =====
+    // ===== 多边形圈选查询 =====
     @Select("SELECT tree_id, species, grade, chest, survey_id, survey_date, " +
             "longitude, latitude " +
             "FROM diseased_trees " +
@@ -86,6 +88,17 @@ public interface DiseasedTreeMapper {
 
     List<DiseasedTree> findByIds(@Param("ids") List<String> ids);
 
-
+    // ===== 时空趋势分析：月度聚合 =====
+    /**
+     * 全国月度聚合：按月统计新增数、累计数、重心坐标
+     */
+    List<MonthlyStats> monthlyStats();
+    /**
+     * 按行政区（省/市）月度聚合：按月统计该区域内的新增数、累计数、重心坐标
+     */
+    List<MonthlyStats> monthlyStatsByRegion(
+            @Param("gbCode") String gbCode,
+            @Param("level") String level
+    );
 
 }

@@ -109,5 +109,26 @@ public class DiseasedTreeServiceImpl implements DiseasedTreeService {
         return diseasedTreeMapper.findByPolygon(polygonGeoJson);
     }
 
+    // ===== 时空趋势分析：月度聚合 =====
+    @Override
+    public List<MonthlyStats> monthlyStats() {
+        List<MonthlyStats> list = diseasedTreeMapper.monthlyStats();
+        if(list == null){
+            return java.util.Collections.emptyList();
+        }
+        return list;
+    }
+    @Override
+    public List<MonthlyStats> monthlyStatsByRegion(String gbCode, String level) {
+        // 防御：gbCode 或 level 为空时直接返回空列表，不查数据库
+        if (gbCode == null || gbCode.isEmpty() || level == null || level.isEmpty()) {
+            return java.util.Collections.emptyList();
+        }
+        List<MonthlyStats> list = diseasedTreeMapper.monthlyStatsByRegion(gbCode, level);
+        if (list == null) {
+            return java.util.Collections.emptyList();
+        }
+        return list;
+    }
 
 }

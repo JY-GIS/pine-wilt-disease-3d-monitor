@@ -134,6 +134,23 @@ public class DiseasedTreeController {
         return Result.success(response);
     }
 
+    // ===== 时空趋势分析：月度聚合 =====
+    @GetMapping("/monthlyStats")
+    public Result monthlyStats() {
+        log.info("查询全国月度聚合统计");
+        List<MonthlyStats> list = diseasedTreeService.monthlyStats();
+        log.info("返回月度统计, 月份数: {}", list.size());
+        return Result.success(list);
+    }
+    @GetMapping("/monthlyStatsByRegion")
+    public Result monthlyStatsByRegion(
+            @RequestParam String gbCode,
+            @RequestParam String level) {
+        log.info("查询区域月度聚合统计, gbCode: {}, level: {}", gbCode, level);
+        List<MonthlyStats> list = diseasedTreeService.monthlyStatsByRegion(gbCode, level);
+        log.info("返回区域月度统计, 月份数: {}", list.size());
+        return Result.success(list);
+    }
 
 
 
