@@ -4,12 +4,19 @@
  * 职责：
  * 1. 管理三级缓冲区配置（低危/中危/高危）
  * 2. 调后端 PostGIS 获取合并后的缓冲区 GeoJSON
- * 3. 构建贴地 Primitive 并添加到场景
+ * 3. 构建贴地 GeoJsonDataSource 并添加到场景    // [修改] Primitive → GeoJsonDataSource
  * 4. 一键显示/隐藏全部 & 单独切换某个等级
+ *
+ * 【性能优化说明】// [修改] 新增
+ *   - 不再对每个顶点采样地形高度（sampleTerrainMostDetailed），
+ *     之前 3 个半径合计约 1.46 万个顶点，逐个采样导致加载极慢且不贴地
+ *   - 改用 GeoJsonDataSource.load(..., { clampToGround: true })，
+ *     Cesium 自带贴地机制，自动贴合地形，加载快
+ *   - 图层首次加载后缓存（dataSource），之后显示/隐藏只切 show，不重建
  */
 import { ref } from 'vue'
 import { API } from '../config/api.config.js'
-import { sampleTerrainHeight } from '../utils/cesiumUtils.js'
+import { DataSource } from 'cesium'
 
 const Cesium = window.Cesium
 
@@ -29,7 +36,7 @@ export const bufferConfigList = [
         fillColor: Cesium.Color.GREENYELLOW.withAlpha(0.3),
         btnColor: Cesium.Color.GREEN.toCssColorString(),
         visibleRef: ref(false),
-        primitive: null,
+        DataSource: null,
     },
     {
         key: 'mid',
@@ -38,7 +45,7 @@ export const bufferConfigList = [
         fillColor: Cesium.Color.PALEVIOLETRED.withAlpha(0.4),
         btnColor: Cesium.Color.PALEVIOLETRED.toCssColorString(),
         visibleRef: ref(false),
-        primitive: null,
+        DataSource: null,
     },
     {
         key: 'high',
@@ -47,7 +54,7 @@ export const bufferConfigList = [
         fillColor: Cesium.Color.RED.withAlpha(0.5),
         btnColor: Cesium.Color.RED.toCssColorString(),
         visibleRef: ref(false),
-        primitive: null,
+        DataSource: null,
     },
 ]
 
@@ -72,130 +79,116 @@ export function useBufferAnalysis() {
         }
     }
 
-    // ========== 创建贴地缓冲区 Primitive ==========
-    async function createMergedBufferPrimitiveHeight(radius, fillColor, viewer) {
+    // ================================================================
+    // [修改] 创建贴地缓冲区 GeoJsonDataSource
+    //   原实现 createMergedBufferPrimitiveHeight：
+    //     对每个环 sampleTerrainMostDetailed 采样地形高度 → 慢、且不贴地
+    //   新实现：
+    //     GeoJsonDataSource.load(feature, { clampToGround: true })
+    //     → Cesium 自动生成贴地 GroundPrimitive，无需采样高度
+    // ================================================================
+    async function createMergedBufferDataSource(radius, fillColor) {
         const feature = await loadAllBuffer(radius)
-        const geometry = feature.geometry
-        const instances = []
-
-        const addPolygon = async (coords) => {
-            // 外环 → 采样地形高度 → Cartesian3 数组
-            const outerRing = await sampleTerrainHeight(coords[0], viewer)
-
-            // 孔洞（如果有）
-            const holes = []
-            for (let h = 1; h < coords.length; h++) {
-                const holeRing = await sampleTerrainHeight(coords[h], viewer)
-                holes.push(new Cesium.PolygonHierarchy(holeRing))
-            }
-
-            instances.push(
-                new Cesium.GeometryInstance({
-                    geometry: new Cesium.PolygonGeometry({
-                        polygonHierarchy: new Cesium.PolygonHierarchy(outerRing, holes),
-                        vertexFormat: Cesium.PerInstanceColorAppearance.VERTEX_FORMAT,
-                    }),
-                    id: `merged-buffer-${radius}`,
-                    attributes: {
-                        color: Cesium.ColorGeometryInstanceAttribute.fromColor(fillColor),
-                    },
-                })
-            )
-        }
-
-        // 处理 Polygon 和 MultiPolygon 两种情况
-        if (geometry.type === 'Polygon') {
-            await addPolygon(geometry.coordinates)
-        } else if (geometry.type === 'MultiPolygon') {
-            for (const polygon of geometry.coordinates) {
-                await addPolygon(polygon)
-            }
-        }
-
-        return new Cesium.Primitive({
-            geometryInstances: instances,
-            appearance: new Cesium.PerInstanceColorAppearance({
-                flat: true,
-                translucent: true,
-            }),
+        return await Cesium.GeoJsonDataSource.load(feature, {
+            clampToGround: true,
+            fill: fillColor,
+            stroke: Cesium.Color.WHITE.withAlpha(0.6),
+            strokeWidth: 1,
         })
     }
 
     // ========== 一键显示/隐藏全部缓冲区 ==========
+    // [修改] 重写：不再 remove/重建，改为首次加载缓存 + 切换 show
     async function toggleAllBuffered(viewer) {
         if (isLoadingBuffer) return
+        if (!viewer) {
+            console.warn('viewer 未初始化，跳过缓冲区显示')
+            return
+        }
         isLoadingBuffer = true
-
-        if (bufferVisibleAll.value) {
-            // → 隐藏全部
+        try {
+            if (bufferVisibleAll.value) {
+                // → 隐藏全部
+                bufferConfigList.forEach((cfg) => {
+                    // [修改] 只隐藏，不删除图层 → 下次显示秒开
+                    if (cfg.dataSource) {
+                        cfg.dataSource.show = false
+                    }
+                    cfg.visibleRef.value = false
+                })
+                bufferVisibleAll.value = false
+            } else {
+                // → 显示全部（首次才加载，之后直接 show）
+                await Promise.all(
+                    bufferConfigList.map(async (cfg) => {
+                        if (!cfg.dataSource) {
+                            cfg.dataSource = await createMergedBufferDataSource(
+                                cfg.radius,
+                                cfg.fillColor
+                            )
+                            viewer.dataSources.add(cfg.dataSource)
+                        }
+                        cfg.dataSource.show = true
+                        cfg.visibleRef.value = true
+                    })
+                )
+                bufferVisibleAll.value = true
+            }
+        } catch (error) {
+            console.error('缓冲区显示失败:', error)
+            // 失败时全部隐藏并复位状态
             bufferConfigList.forEach((cfg) => {
-                if (cfg.primitive) {
-                    viewer.scene.primitives.remove(cfg.primitive)
-                    cfg.primitive = null
+                if (cfg.dataSource) {
+                    cfg.dataSource.show = false
                 }
                 cfg.visibleRef.value = false
             })
             bufferVisibleAll.value = false
-        } else {
-            // → 显示全部（先清旧图层，避免重复添加）
-            bufferConfigList.forEach((cfg) => {
-                if (cfg.primitive) {
-                    viewer.scene.primitives.remove(cfg.primitive)
-                    cfg.primitive = null
-                }
-            })
-            // 由大到小加载：大的先添加 → 在底层；小的后添加 → 在上层
-            await Promise.all(
-                bufferConfigList.map(async (cfg) => {
-                    cfg.primitive = await createMergedBufferPrimitiveHeight(
-                        cfg.radius,
-                        cfg.fillColor,
-                        viewer
-                    )
-                    viewer.scene.primitives.add(cfg.primitive)
-                    cfg.visibleRef.value = true
-                })
-            )
-            bufferVisibleAll.value = true
+        } finally {
+            isLoadingBuffer = false   // 关键：无论成功失败都解锁
         }
-
-        isLoadingBuffer = false
     }
 
     // ========== 单独切换某个等级 ==========
+    // [修改] 同样改为缓存 + 切换 show
     async function toggleSingleBuffer(viewer, key) {
         if (isLoadingBuffer) return
         isLoadingBuffer = true
+        try {
+            const cfg = bufferConfigList.find((item) => item.key === key)
+            if (!cfg) return
 
-        const cfg = bufferConfigList.find((item) => item.key === key)
-        if (!cfg) {
+            if (cfg.visibleRef.value) {
+                // → 隐藏
+                if (cfg.dataSource) {
+                    cfg.dataSource.show = false
+                }
+                cfg.visibleRef.value = false
+            } else {
+                // → 显示（首次才加载）
+                if (!cfg.dataSource) {
+                    cfg.dataSource = await createMergedBufferDataSource(
+                        cfg.radius,
+                        cfg.fillColor
+                    )
+                    viewer.dataSources.add(cfg.dataSource)
+                }
+                cfg.dataSource.show = true
+                cfg.visibleRef.value = true
+            }
+        } catch (error) {
+            console.error('缓冲区显示失败:', error)
+            // 失败时隐藏对应等级并复位状态
+            const cfg = bufferConfigList.find((item) => item.key === key)
+            if (cfg) {
+                if (cfg.dataSource) {
+                    cfg.dataSource.show = false
+                }
+                cfg.visibleRef.value = false
+            }
+        } finally {
             isLoadingBuffer = false
-            return
         }
-
-        if (cfg.visibleRef.value) {
-            // → 隐藏
-            if (cfg.primitive) {
-                viewer.scene.primitives.remove(cfg.primitive)
-                cfg.primitive = null
-            }
-            cfg.visibleRef.value = false
-        } else {
-            // → 显示
-            if (cfg.primitive) {
-                viewer.scene.primitives.remove(cfg.primitive)
-                cfg.primitive = null
-            }
-            cfg.primitive = await createMergedBufferPrimitiveHeight(
-                cfg.radius,
-                cfg.fillColor,
-                viewer
-            )
-            viewer.scene.primitives.add(cfg.primitive)
-            cfg.visibleRef.value = true
-        }
-
-        isLoadingBuffer = false
     }
 
     return {
