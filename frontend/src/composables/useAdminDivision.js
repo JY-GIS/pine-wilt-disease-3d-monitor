@@ -691,6 +691,10 @@ export function useAdminDivision() {
         store.backToProvince()
         clearCitySelection()
         applyAllFilters()
+        const province = store.currentProvince
+        if (province && viewer) {
+            flyToProvince(province.gbCode, viewer)
+        }
         console.log('已返回省级视图')
         // 注意：不清除城市层！城市面仍然显示
     }

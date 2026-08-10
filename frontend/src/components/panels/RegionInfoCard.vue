@@ -22,7 +22,7 @@
       <button 
         v-if="adminStore.viewLevel !== 'national'"
         class="toggle-admin-btn"
-        @click="toggleAdminVisibility"
+        @click="handleToggleAdmin"
       >
         行政区显示：{{ showAdmin ? '是' : '否' }}
       </button>
@@ -40,7 +40,7 @@
 </template>
 
 <script setup>  
-  import { computed , inject } from 'vue'
+  import { computed , inject , ref } from 'vue'
   import { useAdminDivisionStore } from '../../stores/adminDivisionStore.js'
 
   // ===== Store =====
@@ -49,6 +49,15 @@
   const backToNational = inject('backToNational')
   const backToProvince = inject('backToProvince') 
   const toggleAdminVisibility = inject('toggleAdminVisibility') 
+
+  // ===== 行政区显隐开关状态（同步按钮文字） =====
+  const showAdmin = ref(true) 
+  function handleToggleAdmin() {
+    showAdmin.value = !showAdmin.value
+    if (toggleAdminVisibility) {
+      toggleAdminVisibility()
+    }
+  }
   // ===== 点击返回按钮 → 根据 viewLevel 分发 =====
   function handleBack() {
     if (adminStore.viewLevel === 'city') {
