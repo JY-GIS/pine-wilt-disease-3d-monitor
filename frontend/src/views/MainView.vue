@@ -56,6 +56,8 @@
     import { useGradeFilter } from '../composables/useGradeFilter.js' 
     import { useAdminDivision } from '../composables/useAdminDivision.js'
     import { useAdminDivisionStore } from '../stores/adminDivisionStore.js'
+    import { useSpatioTemporalStore } from '../stores/spatioTemporalStore.js'
+    import { useCentroidMigration } from '../composables/useCentroidMigration.js'
 
     //====================== 【全局变量统一管理】 ======================
     const { 
@@ -114,6 +116,12 @@
         backToProvince,
         toggleAdminVisibility, 
     } = useAdminDivision()
+    const spatioStore = useSpatioTemporalStore()
+    const { 
+        clearAll: clearCentroidLines, 
+        render: renderCentroidLines 
+        // 解构重命名，防止其他模块也有clearAll
+    } = useCentroidMigration()
 
     // ===== 函数（仍需 viewer，保留 provide） =====
     provide('deleteTree', async () => { await deleteTree(viewer);refreshGradeStats() })
@@ -152,6 +160,8 @@
         await adminStore.fetchProvinces()
         await loadProvincesLayer(viewer)
         setupProvinceInteraction(viewer)
+        // ===== 时空趋势分析初始化 =====
+        await spatioStore.fetchNationalMonthlyStats()
         // ===== 注册恢复回调 =====
         setRestoreCallback(() => {
             handleLeftClickEvent(viewer)
@@ -168,6 +178,39 @@
         })
     })
 
+    // ===== 时空趋势分析：区域联动 =====
+    // 当用户钻取省/市或返回全国时，重新加载该区域的月度数据
+    watch( 
+        () => ({
+            level:adminStore.viewLevel,
+            province:adminStore.currentProvince,
+            city:adminStore.currentCity,
+        }),
+        async (current) => {
+            // 防御：页面初始化时也会触发一次（值从初始态变成实际态），此时数据已由 onMounted 加载
+            // 用标志位跳过首次触发（可选优化，可以删掉）
+            if(current.level === 'city' && current.city) {
+                // 市级视图 → 加载该市月度数据
+                await spatioStore.fetchRegionalMonthlyStats(
+                    current.city.gbCode,
+                    'city',
+                    current.city.name
+                )
+            } else if (current.level === 'province' && current.province) {
+                // 省级视图 → 加载该省月度数据
+                await spatioStore.fetchRegionalMonthlyStats(
+                    current.province.gbCode,
+                    'province',
+                    current.province.name
+                )
+            } else if (current.level === 'national') {
+                // 返回全国 → 恢复全国数据（如果之前缓存了就不用重新请求）
+                await spatioStore.fetchNationalMonthlyStats()
+            }
+        },
+        { deep: true }
+    )
+
     // ===== 页面卸载时销毁 Cesium Viewer，防止再次进入时复用旧实例（绿屏） =====
     onUnmounted(() => {
         destroyViewer()
@@ -181,6 +224,16 @@
                 applyAllFilters()
             } else {
                 applyGradeFilter(treeStore.selectedGrade)
+            }
+        }
+    )
+    // ===== 时空趋势分析：时间过滤联动 =====
+    // 当用户拖拽滑块或点击图表月份时，selectedMonthEnd 变化 → 重新过滤地图上的病树
+    watch(
+        () => spatioStore.selectedMonthEnd,
+        () => {
+            if (!isPrimitiveMode.value) {
+                applyAllFilters()
             }
         }
     )

@@ -46,15 +46,10 @@
         </div>
       </div>
 
-      <!-- 图表占位 -->
-      <div class="chart-placeholder">
-        <p>等级分布趋势图</p>
-        <div class="mock-chart-bar"></div>
-      </div>
-      <div class="chart-placeholder">
-        <p>疫区面积变化</p>
-        <div class="mock-chart-line"></div>
-      </div>
+      <!-- ===== ★ 时空趋势分析 ===== -->
+      <MonthlyTrendChart />
+      <TimeSlider />
+
       <div class="buffer-controls">
         <button class="tech-btn primary-btn full-width"
                 :style="isDrawingMode ? 
@@ -154,6 +149,9 @@
   import { storeToRefs } from 'pinia'
   import { bufferConfigList, bufferVisibleAll } from '../../composables/useBufferAnalysis.js'
   import { useRoutePlanStore } from '../../stores/routePlanStore.js'
+  import { useSpatioTemporalStore } from '../../stores/spatioTemporalStore.js'
+  import MonthlyTrendChart from '../charts/MonthlyTrendChart.vue'
+  import TimeSlider from '../charts/TimeSlider.vue'
 
   const routePlanStore = useRoutePlanStore()
   const store = useTreeStore()
@@ -164,6 +162,7 @@
     planResult,
     isLoading,
   } = storeToRefs(routePlanStore)
+  const spatioStore = useSpatioTemporalStore()
 
   // ===== 局部状态 =====
   const showRoutePanel = ref(false)

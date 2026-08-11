@@ -29,6 +29,7 @@
 import { useAdminDivisionStore } from '../stores/adminDivisionStore.js'
 import { useTreeStore } from '../stores/treeStore.js'
 import { treeState } from './useDiseasedTrees.js'
+import { useSpatioTemporalStore } from '../stores/spatioTemporalStore.js'
 const Cesium = window.Cesium
 
 // ==================== 模块级变量（不对外暴露） ====================
@@ -596,6 +597,8 @@ export function useAdminDivision() {
         const treeStore = useTreeStore()
         const regionIds = adminStore.visibleTreeIds
         const gradeFilter = treeStore.selectedGrade
+        const spatioStore = useSpatioTemporalStore()
+        const monthEnd = spatioStore.selectedMonthEnd
         if (!treeState.entities || treeState.entities.length === 0) return
         if (regionIds === null) {
             hideAllTrees()
@@ -620,6 +623,16 @@ export function useAdminDivision() {
                     entityGrade = entity.properties.grade
                 }
                 show = (entityGrade === gradeFilter)
+            }
+            // 条件C ：时间过滤  ——> 用于时空趋势分析
+            if (show && monthEnd !== null) {
+                let entityDate
+                try {
+                    entityDate = entity.properties.surveyDate.getValue()
+                } catch (e) {
+                    entityDate = entity.properties.surveyDate
+                }
+                show = (entityDate && entityDate <= monthEnd)
             }
             entity.show = show
         }

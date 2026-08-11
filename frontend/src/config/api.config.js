@@ -71,6 +71,13 @@ export const API = {
             `${BASE_URL}/admin-division/cities/${cityGbCode}/treeIds`,
     },
 
+    // 时空趋势分析 —— 月度聚合
+    spatiotemporal: {
+        monthlyStats: `${BASE_URL}/diseasedTrees/monthlyStats`,
+        monthlyStatsByRegion: (gbCode, level) =>
+            `${BASE_URL}/diseasedTrees/monthlyStatsByRegion?gbCode=${gbCode}&level=${level}`,
+    },
+
     // 通用请求头
     getHeaders,
 }
