@@ -14,6 +14,10 @@
  *          实现“点1→点2 → 点2→点3 → …”依次飞的效果
  *   [新增] 高度自适应视野：弧高 = f(两点水平距离, 当前相机高度)，
  *          相机 moveEnd 时自动重建，视野宏观弧高放大、视野微观弧高缩小
+ * 
+ *   [新增] 扩散圆环材质（frontend/src/utils/rippleRingMaterialProperty.js）
+ *   [修改] 第 1 步：删除黄色点渲染，改为贴地红色扩散圆环（3 秒一波、3 圈、循环）
+ *   [新增] 圆环半径按相邻重心点距离的比例自动计算（全国/省/市视角自动协调）
  *
  * 【调用时机】
  *   - MainView onMounted 中初始化后调用
@@ -23,10 +27,11 @@ import { ref, watch } from 'vue'
 import { useSpatioTemporalStore } from '../stores/spatioTemporalStore.js'
 import { getViewer } from './useCesiumViewer.js'
 import LineFlowMaterialProperty from '../utils/lineFlowMaterialProperty.js'
+import RippleRingMaterialProperty from '../utils/rippleRingMaterialProperty.js'
 const Cesium = window.Cesium
 // ==================== 模块级变量（不对外暴露） ====================
 // 重心点和迁移线的引用，用于清除
-let centroidPointEntities = []
+let rippleRingEntities = []
 let migrationLineEntities = []
 let centroidLabelEntities = []
 let lastPoints = []
@@ -44,7 +49,7 @@ const FLY_CONFIG = {
     viewRefRatio: 2.5,    // 视野适配参考：相机高度 / (距离 × 该值)
     viewScaleMin: 0.4,    // 视野缩放下限（防止缩到很近时弧高过小）
     viewScaleMax: 2.2,    // 视野缩放上限（防止拉到很宏观时弧高爆炸）
-    minFlyHeight: 3000,   // 弧高下限（米）
+    minFlyHeight: 7000,   // 弧高下限（米）
     maxFlyHeight: 1200000, // 弧高上限（米）
     arcPointCount: 64,    // 抛物线采样点数（越多越平滑）
     // 顺序飞行参数
@@ -52,19 +57,29 @@ const FLY_CONFIG = {
     headCount: 3,         // 每条线几个光点同时流动
     glowPower: 2.0,       // 自发光强度（2~5 很亮）
     showTrajectory: true, // 是否保留静态轨迹线（false 则只有流光）
+
+    // ============ 扩散圆参数 ============ 
+    ringColor: '#ff4d4f', // 环颜色（疫情红）
+    ringDuration: 3,      // 一波扩散周期（秒），3 秒一波
+    ringCount: 3,         // 同时存在的圈数（1~8）
+    ringWidth: 0.12,      // 单环相对宽度（0.08 细 / 0.2 粗）
+    centerSize: 0.06,     // 中心亮点大小
+    radiusRatio: 0.2,     // 圆环半径 = 相邻重心点距离 × 该比例
+    minRingRadius: 3000,  // 圆环半径下限（米）
+    maxRingRadius: 250000, // 圆环半径上限（米）
 }
 // ==================== Hook 入口 ====================
 export function useCentroidMigration() {
     const store = useSpatioTemporalStore()
     /**
-     * 清除所有重心相关图元（点 + 线 + 标签）
+     * 清除所有重心相关图元（扩散圆 + 飞线 + 标签）
      */
     function clearAll() {
         const viewer = getViewer()
         if (!viewer) return
         // 合并遍历 + try/catch：viewer 销毁后旧 entity 引用已失效，remove 可能抛错
         const allEntities = [
-            ...centroidPointEntities,
+            ...rippleRingEntities,
             ...migrationLineEntities,
             ...centroidLabelEntities,
         ]
@@ -75,10 +90,32 @@ export function useCentroidMigration() {
                 // 旧引用已随 viewer 销毁，忽略即可
             }
         })
-        centroidPointEntities = []
+        rippleRingEntities = []
         migrationLineEntities = []
         centroidLabelEntities = []
         lastPoints = []
+    }
+
+    /**
+     * 计算某个重心点的扩散圆半径（米）
+     * 规则：取该点到相邻点（优先下一个点，最后一个点用上一个点）的距离 × radiusRatio，
+     *       再限制在 [minRingRadius, maxRingRadius] 之间。
+     * 效果：全国视角点距远 → 圆大；省市视角点距近 → 圆小，比例自动协调。
+     */
+    function computeRingRadius(points, index) {
+        const current = points[index]
+        const neighbor = points[index + 1] || points[index - 1]
+        if (!neighbor) {
+            return FLY_CONFIG.minRingRadius
+        }
+        const a = Cesium.Cartesian3.fromDegrees(current.centerLng, current.centerLat)
+        const b = Cesium.Cartesian3.fromDegrees(neighbor.centerLng, neighbor.centerLat)
+        const dist = Cesium.Cartesian3.distance(a, b)
+        return Cesium.Math.clamp(
+            dist * FLY_CONFIG.radiusRatio,
+            FLY_CONFIG.minRingRadius,
+            FLY_CONFIG.maxRingRadius
+        )
     }
 
     /**
@@ -221,23 +258,29 @@ export function useCentroidMigration() {
         lastPoints = points.slice()
         ensureCameraListener(viewer)
         // ----- 第 1 步：渲染重心点 + 月份标签 -----
-        points.forEach(item => {
+        points.forEach((item, index) => {
             const position = Cesium.Cartesian3.fromDegrees(
                 item.centerLng, item.centerLat
             )
-            // 重心点：橙色圆点，稍大一些与普通病树区分
-            const pointEntity = viewer.entities.add({
+            // 贴地红色扩散圆环
+            const radius = computeRingRadius(points, index)
+            const ringEntity = viewer.entities.add({
                 position: position,
-                point: {
-                    color: Cesium.Color.YELLOW,
-                    pixelSize: 15,
-                    heightReference: Cesium.HeightReference.CLAMP_TO_GROUND,
-                    disableDepthTestDistance: Number.POSITIVE_INFINITY,
-                    // 距离缩放
-                    scaleByDistance: new Cesium.NearFarScalar(500, 1, 5000000, 1.5),
+                ellipse: {
+                    semiMajorAxis: radius,  // 圆盘真实半径（米）
+                    semiMinorAxis: radius,
+                    height: 0,              // 贴地：高度 0 沿椭球面
+                    material: new RippleRingMaterialProperty({
+                        color: Cesium.Color.fromCssColorString(FLY_CONFIG.ringColor),
+                        duration: FLY_CONFIG.ringDuration,
+                        ringCount: FLY_CONFIG.ringCount,
+                        ringWidth: FLY_CONFIG.ringWidth,
+                        centerSize: FLY_CONFIG.centerSize,
+                    }),
                 },
             })
-            centroidPointEntities.push(pointEntity)
+            rippleRingEntities.push(ringEntity)
+            // 月份标签
             const labelEntity = viewer.entities.add({
                 position: position,
                 label: {
