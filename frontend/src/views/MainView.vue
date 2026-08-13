@@ -26,6 +26,18 @@
                 <button class="mode-switch-btn" @click="handleModeSwitch(viewer)">
                     {{ isPrimitiveMode ? '切换到 Entity 模式' : '切换到 Primitive 模式' }}
                 </button>
+                <button class="mode-switch-btn" style="left: 30%" @click="handleLoadHK">
+                    {{ tilesetState.loaded ? '卸载香港数据' : '加载香港 3D Tiles' }}
+                </button>
+                <button class="mode-switch-btn" style="left: 60%" @click="handleTogglePick">
+                    {{ coords.enabled ? '关闭取坐标' : '点击取坐标' }}
+                </button>
+                <div class="coords-panel" v-if="coords.lon !== null">
+                    <div>经度：{{ coords.lon }}°</div>
+                    <div>纬度：{{ coords.lat }}°</div>
+                    <div>高程：{{ coords.height }} m</div>
+                    <button class="coords-copy" @click="copyCoords">复制</button>
+                </div>
             </section>
 
             <!-- 右侧面板 -->
@@ -58,6 +70,8 @@
     import { useAdminDivisionStore } from '../stores/adminDivisionStore.js'
     import { useSpatioTemporalStore } from '../stores/spatioTemporalStore.js'
     import { useCentroidMigration } from '../composables/useCentroidMigration.js'
+    import { useTileset3D } from '../composables/useTileset3D.js'
+    import { useClickCoordinates } from '../composables/useClickCoordinates.js'
 
     //====================== 【全局变量统一管理】 ======================
     const { 
@@ -122,6 +136,16 @@
         render: renderCentroidLines 
         // 解构重命名，防止其他模块也有clearAll
     } = useCentroidMigration()
+    const { 
+        state: tilesetState,
+        loadTileset, 
+        unloadTileset 
+    } = useTileset3D()
+    const {
+        coords,
+        togglePickMode,
+        restoreInteractions: restorePickInteractions,
+    } = useClickCoordinates()
 
     // ===== 函数（仍需 viewer，保留 provide） =====
     provide('deleteTree', async () => { await deleteTree(viewer);refreshGradeStats() })
@@ -137,6 +161,25 @@
     provide('backToProvince', () => backToProvince(viewer))
     provide('backToNational', () => backToNational(viewer))
     provide('toggleAdminVisibility', () => toggleAdminVisibility())
+
+    //==================== 【测试香港3dtiles加载】 ====================
+    function handleLoadHK() {
+        if(tilesetState.loaded) {
+            unloadTileset(viewer)
+        } else {
+            loadTileset(viewer, '/3dtiles/HongKong/tileset.json')
+        }
+    }
+
+    // ==================== 【点击取坐标】 ====================
+    function handleTogglePick() {
+        togglePickMode(viewer)
+    }
+
+    function copyCoords() {
+        const text = `${coords.lon}, ${coords.lat}, ${coords.height}`
+        navigator.clipboard?.writeText(text)
+    }
 
     //===================== 【页面挂载执行初始化】 =====================
     // onMounted：组件 DOM 挂载完成后执行，此时 #cesiumContainer 已存在
@@ -213,6 +256,7 @@
 
     // ===== 页面卸载时销毁 Cesium Viewer，防止再次进入时复用旧实例（绿屏） =====
     onUnmounted(() => {
+        restorePickInteractions(viewer)
         destroyViewer()
     })
 
@@ -298,6 +342,37 @@
     }
 
     .mode-switch-btn:hover {
+        background: rgba(0, 212, 255, 0.4);
+    }
+
+    .coords-panel {
+        position: absolute;
+        bottom: 8px;
+        left: 8px;
+        z-index: 20;
+        background: rgba(10, 40, 60, 0.9);
+        border: 1px solid #00d4ff;
+        color: #e8f0fe;
+        font-family: Consolas, 'Courier New', monospace;
+        font-size: 12px;
+        line-height: 1.6;
+        padding: 6px 10px;
+        border-radius: 4px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+    }
+
+    .coords-copy {
+        margin-top: 2px;
+        padding: 2px 12px;
+        background: rgba(0, 212, 255, 0.2);
+        border: 1px solid #00d4ff;
+        color: #4dd9ff;
+        border-radius: 3px;
+        cursor: pointer;
+        font-size: 11px;
+    }
+
+    .coords-copy:hover {
         background: rgba(0, 212, 255, 0.4);
     }
 

@@ -112,7 +112,7 @@ async function handleLogin() {
   height: 100vh;
   display: flex;
   align-items: center;
-  background: url('/image/松林.png') center / cover no-repeat;
+  background: url('/image/PineForest.png') center / cover no-repeat;
   justify-content: center;
   position: relative;
   overflow: hidden;
