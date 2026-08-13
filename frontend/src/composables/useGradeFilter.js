@@ -92,7 +92,7 @@ export function useGradeFilter() {
                 if (selected.label) {
                     selected.label.show = false
                 }
-                store.selectedEntity = null
+                store.selectedTreeId = null
                 store.showDeleteButton = false
             }
             return
@@ -103,7 +103,7 @@ export function useGradeFilter() {
             if (treeState.sharedLabel) {
                 treeState.sharedLabelEntity.show = false
             }
-            store.selectedEntity = null
+            store.selectedTreeId = null
             store.showDeleteButton = false
         }
 

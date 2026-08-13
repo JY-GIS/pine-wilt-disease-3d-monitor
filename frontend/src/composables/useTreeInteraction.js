@@ -26,6 +26,9 @@ export let connectionLines = []
 // 右键单树缓冲区引用（仅本文件使用）
 let currentBufferDataSource = null
 
+// 解决左键单击/双击卡顿问题 (非响应式模块变量，只给 deleteTree 用)
+let selectedEntityRef = null
+
 // ==================== Hook 入口 ====================
 export function useTreeInteraction() {
     const store = useTreeStore()
@@ -60,9 +63,9 @@ export function useTreeInteraction() {
 
     // ========== 删除选中病树 ==========
     async function deleteTree(viewer) {
-        const selected = store.selectedEntity
+        const selected = selectedEntityRef
         if (!selected) {
-            store.selectedEntity = null
+            selectedEntityRef = null
             return
         }
 
@@ -82,7 +85,7 @@ export function useTreeInteraction() {
                     const index = treeState.entities.indexOf(selected)
                     if (index !== -1) treeState.entities.splice(index, 1)
                     store.showDeleteButton = false
-                    store.selectedEntity = null
+                    selectedEntityRef = null
                     alert('删除成功')
                 }
             } catch (error) {
@@ -113,7 +116,7 @@ export function useTreeInteraction() {
                     treeState.sharedLabelEntity.label.show = false
                 }
                 store.showDeleteButton = false
-                store.selectedEntity = null
+                selectedEntityRef = null
                 alert('删除成功')
             }
         } catch (error) {
@@ -152,7 +155,8 @@ export function useTreeInteraction() {
                 }
 
                 const nowEntity = picked.id
-                store.selectedEntity = nowEntity
+                selectedEntityRef = nowEntity
+                store.selectedTreeId = nowEntity.properties.treeId.getValue()
                 nowEntity.label.show = true
                 store.showDeleteButton = true
                 lastSelectedEntity = nowEntity
@@ -192,7 +196,8 @@ export function useTreeInteraction() {
                     `胸径: ${treeData.chest}`
                 treeState.sharedLabelEntity.label.show = true
 
-                store.selectedEntity = picked.primitive
+                selectedEntityRef = picked.primitive
+                store.selectedTreeId = treeData.treeId
                 lastSelectedPrimitive = picked.primitive
 
                 store.centerTreeInfo = {
@@ -227,7 +232,8 @@ export function useTreeInteraction() {
                 treeState.sharedLabelEntity.label.show = false
             }
 
-            store.selectedEntity = null
+            selectedEntityRef = null
+            store.selectedTreeId = null
             store.showDeleteButton = false
         }, Cesium.ScreenSpaceEventType.LEFT_CLICK)
     }

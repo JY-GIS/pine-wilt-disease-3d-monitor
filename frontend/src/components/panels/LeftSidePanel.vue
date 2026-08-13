@@ -119,7 +119,7 @@
 
       <!-- 删除操作区（原 showDeleteButton 逻辑在此整合） -->
       <div v-if="showDeleteButton" class="action-area">
-        <p class="selected-info">已选: {{ centerTreeInfo?.treeId || selectedEntity?.properties?.treeId?.getValue() }}</p>
+        <p class="selected-info">已选: {{ centerTreeInfo?.treeId || selectedTreeId || '' }}</p>
         <button class="tech-btn danger-btn" @click="deleteTree">
             删除此树
         </button>
@@ -146,7 +146,7 @@
     monthlyNewCount,
     recentRecords,
     showDeleteButton,
-    selectedEntity,
+    selectedTreeId,
     centerTreeInfo,
     nearbyTrees,
     showNearbyPanel,

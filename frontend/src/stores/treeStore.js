@@ -26,7 +26,8 @@ export const useTreeStore = defineStore('tree', () => {
     const selectedGrade = ref(null)
 
     // ==================== 选中与删除 ====================
-    const selectedEntity = ref(null)
+    // const selectedEntity = shallowRef(null)
+    const selectedTreeId = ref(null)
     const showDeleteButton = ref(false)
 
     // ==================== 周边查询 ====================
@@ -91,7 +92,8 @@ export const useTreeStore = defineStore('tree', () => {
         treesCount,
         monthlyNewCount,
         recentRecords,
-        selectedEntity,
+        // selectedEntity,
+        selectedTreeId,
         showDeleteButton,
         centerTreeInfo,
         searchRadius,

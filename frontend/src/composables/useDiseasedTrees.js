@@ -66,8 +66,8 @@ export function useDiseasedTrees() {
             outlineWidth: 1,
             heightReference: Cesium.HeightReference.CLAMP_TO_GROUND,
             disableDepthTestDistance: Number.POSITIVE_INFINITY,
-            distanceDisplayCondition: new Cesium.DistanceDisplayCondition(0, 300000),
-            scaleByDistance: new Cesium.NearFarScalar(500, 2, 250000, 0.2),
+            distanceDisplayCondition: new Cesium.DistanceDisplayCondition(0, 3000000000),
+            scaleByDistance: new Cesium.NearFarScalar(500, 2, 20000000, 0.2),
         })
 
         // 保存原始样式（供高亮还原用）

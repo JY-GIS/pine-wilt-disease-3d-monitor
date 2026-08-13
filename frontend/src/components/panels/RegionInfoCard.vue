@@ -13,14 +13,14 @@
   <div class="region-info-card">
     <div class="region-btn-row">
       <button 
-        v-if="adminStore.viewLevel !== 'national'"
+        
         class="back-btn"
         @click="handleBack"
       >
         ← {{ adminStore.viewLevel === 'city' ? '返回省级视野' : '返回全国视图' }}
       </button>
+      <!-- [修改] 去掉 v-if：全国视角也可以切换行政区显示 -->
       <button 
-        v-if="adminStore.viewLevel !== 'national'"
         class="toggle-admin-btn"
         @click="handleToggleAdmin"
       >

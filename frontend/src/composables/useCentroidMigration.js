@@ -36,6 +36,25 @@ let migrationLineEntities = []
 let centroidLabelEntities = []
 let lastPoints = []
 const cameraBindedViewers = new WeakSet()
+// ==================== 显隐开关（供面板按钮控制） ====================
+export const flyLinesVisible = ref(true)    // 飞线显隐
+export const rippleRingVisible = ref(true)  // 扩散圆显隐
+
+/** 切换飞线显示/隐藏（作用于已存在的实体，后续重绘也遵循该状态） */
+export function toggleFlyLines() {
+    flyLinesVisible.value = !flyLinesVisible.value
+    migrationLineEntities.forEach((e) => {
+        e.show = flyLinesVisible.value
+    })
+}
+
+/** 切换扩散圆显示/隐藏 */
+export function toggleRippleRing() {
+    rippleRingVisible.value = !rippleRingVisible.value
+    rippleRingEntities.forEach((e) => {
+        e.show = rippleRingVisible.value
+    })
+}
 // ================= 飞线效果可调参数 =================
 const FLY_CONFIG = {
     // 流光参数（材质见 lineFlowMaterialProperty.js）
@@ -203,6 +222,8 @@ export function useCentroidMigration() {
 
             // 迁移线改为流光飞线
             const flyEntity = viewer.entities.add({
+                // [修改] 飞线初始显隐跟随开关状态
+                show: flyLinesVisible.value,
                 polyline: {
                     positions: positions,
                     width: 4,
@@ -226,6 +247,8 @@ export function useCentroidMigration() {
             // 可选：保留静态轨迹线（弱化的原迁移线，作为路径骨架）
             if (FLY_CONFIG.showTrajectory) {
                 const trailEntity = viewer.entities.add({
+                    // [修改] 轨迹线显隐跟随飞线开关
+                    show: flyLinesVisible.value,
                     polyline: {
                         positions: positions,
                         width: 2,
@@ -265,6 +288,8 @@ export function useCentroidMigration() {
             // 贴地红色扩散圆环
             const radius = computeRingRadius(points, index)
             const ringEntity = viewer.entities.add({
+                // [修改] 扩散圆初始显隐跟随开关状态
+                show: rippleRingVisible.value,
                 position: position,
                 ellipse: {
                     semiMajorAxis: radius,  // 圆盘真实半径（米）

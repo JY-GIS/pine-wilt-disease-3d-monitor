@@ -50,6 +50,16 @@
       <MonthlyTrendChart />
       <TimeSlider />
 
+      <!-- ===== 重心图层显隐开关（飞线 / 扩散圆） ===== -->
+      <div class="layer-toggle-row">
+        <button class="tech-btn" @click="toggleFlyLines">
+          {{ flyLinesVisible ? '不显示飞线' : '显示飞线' }}
+        </button>
+        <button class="tech-btn" @click="toggleRippleRing">
+          {{ rippleRingVisible ? '不显示扩散圆' : '显示扩散圆' }}
+        </button>
+      </div>
+
       <div class="buffer-controls">
         <button class="tech-btn primary-btn full-width"
                 :style="isDrawingMode ? 
@@ -148,6 +158,12 @@
   import { useTreeStore } from '../../stores/treeStore.js'
   import { storeToRefs } from 'pinia'
   import { bufferConfigList, bufferVisibleAll } from '../../composables/useBufferAnalysis.js'
+  import {
+    flyLinesVisible,
+    rippleRingVisible,
+    toggleFlyLines,
+    toggleRippleRing,
+  } from '../../composables/useCentroidMigration.js'
   import { useRoutePlanStore } from '../../stores/routePlanStore.js'
   import { useSpatioTemporalStore } from '../../stores/spatioTemporalStore.js'
   import MonthlyTrendChart from '../charts/MonthlyTrendChart.vue'
@@ -312,6 +328,18 @@
   transition: all 0.25s cubic-bezier(0.17, 0.67, 0.88, 1.01);
   letter-spacing: 1px;
   outline: none;
+}
+
+/* ===== 重心图层显隐开关（飞线 / 扩散圆） ===== */
+.layer-toggle-row {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.layer-toggle-row .tech-btn {
+  flex: 1;
+  font-size: 12px;
+  padding: 7px 0;
 }
 .tech-btn:hover {
   background: rgba(0, 212, 255, 0.3);
