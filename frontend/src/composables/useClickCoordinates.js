@@ -15,8 +15,8 @@ import { reactive } from 'vue'
 
 const Cesium = window.Cesium
 
-// ==================== 模块级状态 ====================
-const coords = reactive({
+// =========================== 模块级状态 ==========================
+const coords = reactive({ // ref 适合单个值，读写要 .value
     lon: null,
     lat: null,
     height: null,
@@ -32,6 +32,7 @@ export function pickLngLat(viewer, windowPosition) {
     // 1. 优先用深度缓冲拾取渲染表面（地形 / 3D Tiles 表面，带高程）
     try {
         if (viewer.scene.pickPositionSupported) {
+            // 性能优化接触到'按需渲染'之后,pickPosition读到的深度缓冲可能是"旧帧"
             const cartesian = viewer.scene.pickPosition(windowPosition)
             if (Cesium.defined(cartesian)) {
                 const carto = Cesium.Cartographic.fromCartesian(cartesian)

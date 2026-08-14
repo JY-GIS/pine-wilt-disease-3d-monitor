@@ -26,13 +26,17 @@
                 <button class="mode-switch-btn" @click="handleModeSwitch(viewer)">
                     {{ isPrimitiveMode ? '切换到 Entity 模式' : '切换到 Primitive 模式' }}
                 </button>
-                <button class="mode-switch-btn" style="left: 30%" @click="handleLoadHK">
+                <button class="mode-switch-btn" style="left: 10%" @click="handleLoadHK">
                     {{ tilesetState.loaded ? '卸载香港数据' : '加载香港 3D Tiles' }}
                 </button>
-                <button class="mode-switch-btn" style="left: 60%" @click="handleTogglePick">
+                <button class="mode-switch-btn" style="left: 30%" @click="handleTogglePick">
                     {{ coords.enabled ? '关闭取坐标' : '点击取坐标' }}
                 </button>
+                <button class="mode-switch-btn" style="left: 70%" @click="handleTogglePine">
+                    {{ pineState.enabled ? '切换回病树点' : '切换 3D 松树' }}
+                </button>
                 <div class="coords-panel" v-if="coords.lon !== null">
+                    <button class="coords-close" @click="closeCoordsPanel" title="关闭">❌</button>
                     <div>经度：{{ coords.lon }}°</div>
                     <div>纬度：{{ coords.lat }}°</div>
                     <div>高程：{{ coords.height }} m</div>
@@ -72,6 +76,7 @@
     import { useCentroidMigration } from '../composables/useCentroidMigration.js'
     import { useTileset3D } from '../composables/useTileset3D.js'
     import { useClickCoordinates } from '../composables/useClickCoordinates.js'
+    import { usePineTreesModel3D } from '../composables/usePineTreesModel3D.js'
 
     //====================== 【全局变量统一管理】 ======================
     const { 
@@ -146,6 +151,12 @@
         togglePickMode,
         restoreInteractions: restorePickInteractions,
     } = useClickCoordinates()
+    const {
+        pineState,
+        togglePineMode,
+        applyGradeFilter: applyPineGradeFilter,
+        unloadPineEntities,
+    } = usePineTreesModel3D()
 
     // ===== 函数（仍需 viewer，保留 provide） =====
     provide('deleteTree', async () => { await deleteTree(viewer);refreshGradeStats() })
@@ -179,6 +190,18 @@
     function copyCoords() {
         const text = `${coords.lon}, ${coords.lat}, ${coords.height}`
         navigator.clipboard?.writeText(text)
+    }
+
+    // 关闭左下角取坐标面板（清空坐标，隐藏面板）
+    function closeCoordsPanel() {
+        coords.lon = null
+        coords.lat = null
+        coords.height = null
+    }
+    
+    // ==================== 【3D 松树切换】 ====================
+    function handleTogglePine() {
+        togglePineMode(viewer)
     }
 
     //===================== 【页面挂载执行初始化】 =====================
@@ -257,6 +280,7 @@
     // ===== 页面卸载时销毁 Cesium Viewer，防止再次进入时复用旧实例（绿屏） =====
     onUnmounted(() => {
         restorePickInteractions(viewer)
+        unloadPineEntities(viewer)
         destroyViewer()
     })
 
@@ -269,6 +293,8 @@
             } else {
                 applyGradeFilter(treeStore.selectedGrade)
             }
+            // 3D 松树模式下的等级过滤
+            applyPineGradeFilter(treeStore.selectedGrade)
         }
     )
     // ===== 时空趋势分析：时间过滤联动 =====
@@ -374,6 +400,22 @@
 
     .coords-copy:hover {
         background: rgba(0, 212, 255, 0.4);
+    }
+
+    .coords-close {
+        position: absolute;
+        top: 2px;
+        right: 2px;
+        padding: 0;
+        background: transparent;
+        border: none;
+        cursor: pointer;
+        font-size: 6px;
+        line-height: 1;
+        opacity: 0.85;
+    }
+    .coords-close:hover {
+        opacity: 1;
     }
 
     :deep(.cesium-viewer-bottom) {

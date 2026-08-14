@@ -3,6 +3,7 @@ import { reactive } from 'vue'
 const Cesium = window.Cesium
 
 let tilesetInstance = null
+
 const state = reactive({
     loaded: false,
     loading: false,
@@ -12,6 +13,7 @@ const state = reactive({
 export function useTileset3D() {
     async function loadTileset(viewer, url) {
         if (!viewer) return null
+        if (state.loading) return null
         if (tilesetInstance) {
             viewer.scene.primitives.remove(tilesetInstance)
             tilesetInstance.destroy()
@@ -21,13 +23,13 @@ export function useTileset3D() {
         state.error = ''
         try {
             const tileset = await Cesium.Cesium3DTileset.fromUrl(url, {
-                maximumScreenSpaceError: 1  // 越小越清晰、越慢;越大越快越糊
+                maximumScreenSpaceError: 16  // 越小越清晰、越慢;越大越快越糊
             })
             tilesetInstance = tileset
             viewer.scene.primitives.add(tileset)
             state.loaded = true
             state.loading = false
-            viewer.flyTo(tileset, { duration: 5 })
+            viewer.flyTo(tileset, { duration: 3 })
             return tileset
         } catch (err) {
             state.loading = false
