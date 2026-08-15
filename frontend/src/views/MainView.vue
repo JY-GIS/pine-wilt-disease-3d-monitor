@@ -68,6 +68,7 @@
     import { useTreeStore } from '../stores/treeStore.js'
     import { usePolygonDraw, clearPolygonFromMap } from '../composables/usePolygonDraw.js'
     import { useRoutePlanning } from '../composables/useRoutePlanning.js'
+    import { useDroneFlight } from '../composables/useDroneFlight.js'
     import { useSearchTree } from '../composables/useSearchTree.js'
     import { useGradeFilter } from '../composables/useGradeFilter.js' 
     import { useAdminDivision } from '../composables/useAdminDivision.js'
@@ -119,6 +120,14 @@
         clearRouteFromMap,
         setRestoreCallback: setRouteRestoreCallback,
     } = useRoutePlanning()
+    const {
+        startDrone,
+        pauseDrone,
+        resumeDrone,
+        hideDrone,
+        showDrone,
+        clearDrone,
+    } = useDroneFlight()
     const { searchTreeById } = useSearchTree()
     const {
         loadGradeStats,
@@ -172,6 +181,12 @@
     provide('backToProvince', () => backToProvince(viewer))
     provide('backToNational', () => backToNational(viewer))
     provide('toggleAdminVisibility', () => toggleAdminVisibility())
+    provide('startDrone', () => startDrone(viewer))
+    provide('pauseDrone', () => pauseDrone(viewer))
+    provide('resumeDrone', () => resumeDrone(viewer))
+    provide('hideDrone', () => hideDrone(viewer))
+    provide('showDrone', () => showDrone(viewer))
+    provide('clearDrone', () => clearDrone(viewer))
 
     //==================== 【测试香港3dtiles加载】 ====================
     function handleLoadHK() {
@@ -280,6 +295,7 @@
     // ===== 页面卸载时销毁 Cesium Viewer，防止再次进入时复用旧实例（绿屏） =====
     onUnmounted(() => {
         restorePickInteractions(viewer)
+        clearDrone(viewer)
         unloadPineEntities(viewer)
         destroyViewer()
     })

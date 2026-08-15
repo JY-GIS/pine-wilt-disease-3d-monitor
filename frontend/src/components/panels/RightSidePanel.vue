@@ -140,6 +140,39 @@
               清除路线
             </button>
           </div>
+          <!-- ===== 无人机动画控制 ===== -->
+          <div v-if="planResult" class="drone-control-area">
+            <div class="drone-status-row">
+              无人机状态：{{ droneStatusText }}
+            </div>
+
+            <div class="drone-control-row">
+              <button v-if="droneStatus === 'idle'"
+                      class="tech-btn drone-btn"
+                      @click="handleStartDrone">启动无人机</button>
+
+              <button v-else-if="droneStatus === 'playing'"
+                      class="tech-btn drone-btn"
+                      @click="handlePauseDrone">暂停飞行</button>
+
+              <button v-else-if="droneStatus === 'paused'"
+                      class="tech-btn drone-btn"
+                      @click="handleResumeDrone">继续飞行</button>
+
+              <button v-if="droneStatus === 'hidden'"
+                      class="tech-btn drone-btn"
+                      @click="handleShowDrone">显示无人机</button>
+
+              <button v-else-if="droneStatus !== 'idle'"
+                      class="tech-btn drone-btn"
+                      @click="handleHideDrone">隐藏无人机</button>
+            </div>
+
+            <div v-if="droneFlightResult" class="drone-meta">
+              <span>航线距离：{{ formatDistance(droneFlightResult.totalDistance) }}</span>
+              <span>飞行时长：{{ (droneFlightResult.droneFlight?.totalDurationSeconds || 0).toFixed(1) }} s</span>
+            </div>
+          </div>
           <!-- ===== 获取调查方案按钮（无结果时显示） ===== -->
           <button v-if="!planResult"
                   class="tech-btn primary-btn full-width"
@@ -154,7 +187,7 @@
 </template>
 
 <script setup>
-  import { ref, inject } from 'vue'
+  import { ref, inject, computed } from 'vue'
   import { useTreeStore } from '../../stores/treeStore.js'
   import { storeToRefs } from 'pinia'
   import { bufferConfigList, bufferVisibleAll } from '../../composables/useBufferAnalysis.js'
@@ -178,6 +211,10 @@
     planResult,
     isLoading,
   } = storeToRefs(routePlanStore)
+  const {
+    droneFlightResult,
+    droneStatus,
+  } = storeToRefs(routePlanStore)
   const spatioStore = useSpatioTemporalStore()
 
   // ===== 局部状态 =====
@@ -197,6 +234,12 @@
   const toggleRoutePlanningMode = inject('toggleRoutePlanningMode')
   const fetchAndDraw = inject('fetchAndDraw')
   const clearRouteFromMap = inject('clearRouteFromMap')
+  const startDrone = inject('startDrone')
+  const pauseDrone = inject('pauseDrone')
+  const resumeDrone = inject('resumeDrone')
+  const hideDrone = inject('hideDrone')
+  const showDrone = inject('showDrone')
+  const clearDrone = inject('clearDrone')
 
   const toggleCollapse = () => {
     collapsed.value = !collapsed.value
@@ -232,11 +275,41 @@
   const handleFetchPlan = () => {
     fetchAndDraw()
   }
-  // ===== 路径规划：清除路线 =====
+  // ===== 无人机状态文案 =====
+  const droneStatusText = computed(() => {
+    const textMap = {
+      idle: '未启动',
+      loading: '加载中',
+      playing: '飞行中',
+      paused: '已暂停',
+      hidden: '已隐藏',
+    }
+    return textMap[droneStatus.value] || '未知'
+  })
+  // ===== 【新增】无人机按钮事件 =====
+  const handleStartDrone = () => {
+    startDrone()
+  }
+  const handlePauseDrone = () => {
+    pauseDrone()
+  }
+  const handleResumeDrone = () => {
+    resumeDrone()
+  }
+  const handleHideDrone = () => {
+    hideDrone()
+  }
+  const handleShowDrone = () => {
+    showDrone()
+  }
+
+  // ===== 清除路线时，同时清除无人机 =====
   const handleClearRoute = () => {
     routePlanStore.clearPlanResult()
     clearRouteFromMap()
+    clearDrone()
   }
+
   // ===== 距离格式化（米） =====
   const formatDistance = (meters) => {
     if (!meters && meters !== 0) return '--'
@@ -615,5 +688,39 @@
   padding: 6px 14px;
   font-size: 12px;
   white-space: nowrap;
+}
+/* ===== 【新增】无人机动画控制 ===== */
+.drone-control-area {
+  padding: 10px;
+  background: rgba(0, 212, 255, 0.05);
+  border: 1px solid rgba(0, 212, 255, 0.15);
+  border-radius: 3px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.drone-status-row {
+  font-size: 12px;
+  color: rgba(232, 240, 254, 0.75);
+}
+
+.drone-control-row {
+  display: flex;
+  gap: 8px;
+}
+
+.drone-btn {
+  flex: 1;
+  padding: 6px 8px;
+  font-size: 12px;
+}
+
+.drone-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 11px;
+  color: rgba(232, 240, 254, 0.6);
 }
 </style>

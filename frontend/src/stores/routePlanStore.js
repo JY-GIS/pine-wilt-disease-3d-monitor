@@ -11,24 +11,33 @@ import { ref } from 'vue'
 export const useRoutePlanStore = defineStore('routePlan', () => {
 
     // ==================== 状态 ====================
-
     /** 是否处于路径选点模式（点击地图添加病树） */
     const isRoutePlanningMode = ref(false)
-
     /**
      * 用户已点选的病树列表
      * 每个元素：{ treeId, species, grade, lng, lat }
      */
     const selectedPoints = ref([])
-
     /** 后端返回的路径规划结果（RoutePlanResponse.data） */
     const planResult = ref(null)
-
     /** 是否展示规划结果面板 */
     const showPlanResult = ref(false)
-
     /** 是否正在请求后端 */
     const isLoading = ref(false)
+
+    // ===== 无人机动画状态 =====
+    const droneFlightResult = ref(null)
+    /**
+     * droneStatus 只允许这些值：
+     * idle      未启动
+     * loading   加载中
+     * playing   飞行中
+     * paused    已暂停
+     * hidden    已隐藏
+     *
+     * 用字符串而不是多个布尔值，是因为这些状态互斥。
+     */
+    const droneStatus = ref('idle')
 
     // ==================== 操作 ====================
 
@@ -80,6 +89,18 @@ export const useRoutePlanStore = defineStore('routePlan', () => {
         showPlanResult.value = false
     }
 
+    // ===== 无人机 ===== 
+    function setDroneFlightResult(result) {
+        droneFlightResult.value = result
+    }
+    function setDroneStatus(status) {
+        droneStatus.value = status
+    }
+    function clearDroneFlight() {
+        droneFlightResult.value = null
+        droneStatus.value = 'idle'
+    }
+
     return {
         // 状态
         isRoutePlanningMode,
@@ -87,11 +108,16 @@ export const useRoutePlanStore = defineStore('routePlan', () => {
         planResult,
         showPlanResult,
         isLoading,
+        droneFlightResult,
+        droneStatus,
         // 操作
         addPoint,
         removePoint,
         clearPoints,
         setPlanResult,
         clearPlanResult,
+        setDroneFlightResult,
+        setDroneStatus,
+        clearDroneFlight,
     }
 })

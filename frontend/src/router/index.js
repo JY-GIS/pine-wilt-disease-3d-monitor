@@ -20,6 +20,13 @@ const routes = [
         meta: { requiresAuth: false },
     },
     {
+        path: '/demo-test',
+        name: 'DemoTest',
+        // 万能 Cesium 实验台：免登录，初始视角青岛市南区
+        component: () => import('../views/DemoTestView.vue'),
+        meta: { requiresAuth: false },
+    },
+    {
         path: '/',
         name: 'Dashboard',
         component: () => import('../views/MainView.vue'),
