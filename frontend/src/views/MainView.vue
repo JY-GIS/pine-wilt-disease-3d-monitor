@@ -78,6 +78,7 @@
     import { useTileset3D } from '../composables/useTileset3D.js'
     import { useClickCoordinates } from '../composables/useClickCoordinates.js'
     import { usePineTreesModel3D } from '../composables/usePineTreesModel3D.js'
+    import { useDroneCameraFollow } from '../composables/useDroneCameraFollow.js'
 
     //====================== 【全局变量统一管理】 ======================
     const { 
@@ -120,6 +121,7 @@
         clearRouteFromMap,
         setRestoreCallback: setRouteRestoreCallback,
     } = useRoutePlanning()
+    const droneFlight = useDroneFlight()
     const {
         startDrone,
         pauseDrone,
@@ -127,7 +129,11 @@
         hideDrone,
         showDrone,
         clearDrone,
-    } = useDroneFlight()
+    } = droneFlight
+    const {
+        toggleCameraFollow,
+        clearCameraFollow,
+    } = useDroneCameraFollow(droneFlight)
     const { searchTreeById } = useSearchTree()
     const {
         loadGradeStats,
@@ -181,12 +187,13 @@
     provide('backToProvince', () => backToProvince(viewer))
     provide('backToNational', () => backToNational(viewer))
     provide('toggleAdminVisibility', () => toggleAdminVisibility())
-    provide('startDrone', () => startDrone(viewer))
+    provide('startDrone', () => {clearCameraFollow(viewer);startDrone(viewer)})
     provide('pauseDrone', () => pauseDrone(viewer))
     provide('resumeDrone', () => resumeDrone(viewer))
     provide('hideDrone', () => hideDrone(viewer))
     provide('showDrone', () => showDrone(viewer))
-    provide('clearDrone', () => clearDrone(viewer))
+    provide('clearDrone', () => {clearCameraFollow(viewer);clearDrone(viewer)})
+    provide('toggleCameraFollow', () => toggleCameraFollow(viewer))
 
     //==================== 【测试香港3dtiles加载】 ====================
     function handleLoadHK() {
@@ -295,6 +302,7 @@
     // ===== 页面卸载时销毁 Cesium Viewer，防止再次进入时复用旧实例（绿屏） =====
     onUnmounted(() => {
         restorePickInteractions(viewer)
+        clearCameraFollow(viewer)
         clearDrone(viewer)
         unloadPineEntities(viewer)
         destroyViewer()

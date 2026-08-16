@@ -167,6 +167,15 @@
                       class="tech-btn drone-btn"
                       @click="handleHideDrone">隐藏无人机</button>
             </div>
+            <!-- ====== 相机跟随按钮 ====== -->
+            <div class="drone-control-row">
+              <button
+                v-if="droneStatus !== 'idle' && droneStatus !== 'loading'"
+                class="tech-btn drone-btn"
+                @click="handleToggleCameraFollow">
+                {{ cameraFollowEnabled ? '退出跟随' : '开启跟随' }}
+              </button>
+            </div>
 
             <div v-if="droneFlightResult" class="drone-meta">
               <span>航线距离：{{ formatDistance(droneFlightResult.totalDistance) }}</span>
@@ -215,6 +224,7 @@
     droneFlightResult,
     droneStatus,
   } = storeToRefs(routePlanStore)
+  const { cameraFollowEnabled } = storeToRefs(routePlanStore)
   const spatioStore = useSpatioTemporalStore()
 
   // ===== 局部状态 =====
@@ -240,6 +250,7 @@
   const hideDrone = inject('hideDrone')
   const showDrone = inject('showDrone')
   const clearDrone = inject('clearDrone')
+  const toggleCameraFollow = inject('toggleCameraFollow')
 
   const toggleCollapse = () => {
     collapsed.value = !collapsed.value
@@ -301,6 +312,9 @@
   }
   const handleShowDrone = () => {
     showDrone()
+  }
+  const handleToggleCameraFollow = () => {
+    toggleCameraFollow()
   }
 
   // ===== 清除路线时，同时清除无人机 =====

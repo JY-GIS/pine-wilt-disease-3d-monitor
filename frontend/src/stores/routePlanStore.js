@@ -38,6 +38,7 @@ export const useRoutePlanStore = defineStore('routePlan', () => {
      * 用字符串而不是多个布尔值，是因为这些状态互斥。
      */
     const droneStatus = ref('idle')
+    const cameraFollowEnabled = ref(false)
 
     // ==================== 操作 ====================
 
@@ -96,9 +97,13 @@ export const useRoutePlanStore = defineStore('routePlan', () => {
     function setDroneStatus(status) {
         droneStatus.value = status
     }
+    function setCameraFollowEnabled(enabled) {
+        cameraFollowEnabled.value = enabled
+    }
     function clearDroneFlight() {
         droneFlightResult.value = null
         droneStatus.value = 'idle'
+        cameraFollowEnabled.value = false
     }
 
     return {
@@ -110,7 +115,9 @@ export const useRoutePlanStore = defineStore('routePlan', () => {
         isLoading,
         droneFlightResult,
         droneStatus,
+        cameraFollowEnabled,
         // 操作
+        setCameraFollowEnabled,
         addPoint,
         removePoint,
         clearPoints,

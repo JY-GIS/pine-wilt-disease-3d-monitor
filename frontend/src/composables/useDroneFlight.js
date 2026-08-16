@@ -284,6 +284,46 @@ function buildCzml(flight) {
         },
     ]
 }
+// =========== 提供相机跟随使用 ===========
+/**
+* 获取无人机当前世界坐标。
+* API：droneDataSource.entities.getById
+* 作用：根据 CZML packet id 找到对应实体。
+*/
+function getDroneEntityPosition(viewer) {
+    if (!viewer || !droneDataSource) return null
+    const entity = droneDataSource.entities.getById('droneModel')
+    if (!entity || !entity.position) return null
+    const position = entity.position.getValue(viewer.clock.currentTime)
+    return Cesium.defined(position) ? position : null
+}
+/**
+ * 根据无人机当前时间，找到最接近的飞行关键帧，返回 heading。
+ */
+function getDroneHeadingAtTime(viewer, store) {
+    const points = store.droneFlightResult?.droneFlight?.points
+    if (!points || points.length === 0 || !droneStartTime) {
+        return 0
+    }
+    /**
+     * secondsDifference 作用：计算两个 Cesium 时间相差多少秒。
+     */
+    const elapsed = Cesium.JulianDate.secondsDifference(
+        viewer.clock.currentTime,
+        droneStartTime
+    )
+    let bestPoint = points[0]
+    let bestDiff = Number.POSITIVE_INFINITY
+    for (let i = 0; i < points.length; i++) {
+        const diff = Math.abs(elapsed - points[i].time)
+        if (diff < bestDiff) {
+            bestDiff = diff
+            bestPoint = points[i]
+        }
+    }
+    return bestPoint.headingDeg || 0
+}
+
 export function useDroneFlight() {
     const store = useRoutePlanStore()
     /**
@@ -500,6 +540,29 @@ export function useDroneFlight() {
             store.clearDroneFlight()
         }
     }
+    // ====== 给相机跟随使用的方法 ======
+    /**
+     * 获取无人机当前世界坐标。
+     */
+    function getDronePosition(viewer) {
+        return getDroneEntityPosition(viewer)
+    }
+
+    /**
+     * 获取无人机当前航向角。
+     */
+    function getDroneHeading(viewer) {
+        return getDroneHeadingAtTime(viewer, store)
+    }
+
+    /**
+     * 无人机 DataSource 是否存在。
+     */
+    function isDroneActive() {
+        return Boolean(droneDataSource)
+    }
+
+    // ----- 新增结束 -----
 
     return {
         startDrone,
@@ -508,5 +571,8 @@ export function useDroneFlight() {
         hideDrone,
         showDrone,
         clearDrone,
+        getDronePosition,
+        getDroneHeading,
+        isDroneActive,
     }
 }
