@@ -45,39 +45,92 @@ function initialBearing(lat1, lng1, lat2, lng2) {
     const degrees = Cesium.Math.toDegrees(Math.atan2(y, x))
     return (degrees + 360) % 360
 }
+// ===== 根据经纬度、高度和航向角计算四元数 =====
+function computeOrientation(lng, lat, height, headingDeg, pitchDeg = 0) {
+    const position = Cesium.Cartesian3.fromDegrees(lng, lat, height)
+    const headingOffset = 90
+    const hpr = new Cesium.HeadingPitchRoll( // 作用：表示 heading/pitch/roll 三个姿态角
+        Cesium.Math.toRadians(headingDeg + headingOffset),
+        Cesium.Math.toRadians(pitchDeg),
+        Cesium.Math.toRadians(0)
+    )
+    // Cesium.Transforms.headingPitchRollQuaternion 作用：把 HeadingPitchRoll 转成 Cesium 四元数
+    const q = Cesium.Transforms.headingPitchRollQuaternion(position, hpr)
+    return {
+        x: q.x,
+        y: q.y,
+        z: q.z,
+        w: q.w
+    }
+}
 
 /**
  * 创建一个无人机飞行关键帧。
  * 关键帧 = 某个时间点，无人机的位置、高度和姿态。
  */
-function createPoint(time, lng, lat, height, heading) {
+function createPoint(time, lng, lat, height, heading, pitchDeg = 0) {
+    // ===== 计算模型朝向四元数 =====
+    const orientation = computeOrientation(lng, lat, height, heading, pitchDeg)
     return {
         time,
         lng,
         lat,
         height,
         headingDeg: heading,
-        pitchDeg: 0,
+        pitchDeg,
         rollDeg: 0,
+        orientation,
     }
+}
+// ===== 在两个病树点之间生成很多中间经纬度点 =====
+function buildDenseLngLatPoints(route, samplesPerSegment) {
+    const densePoints = []
+    for (let i = 0; i < route.length - 1; i++) {
+        const current = route[i]
+        const next = route[i + 1]
+        for (let k = 0; k <= samplesPerSegment; k++) {
+            const ratio = k / samplesPerSegment
+            densePoints.push([
+                current.lng + (next.lng - current.lng) * ratio,
+                current.lat + (next.lat - current.lat) * ratio,
+            ])
+        }
+    }
+    return densePoints
+}
+// ===== 采集两点之间的多点经纬度对应的高度 =====
+function routePointGroundHeight(i, routeLength, denseHeights, samplesPerSegment) {
+    if (routeLength < 2) return 0
+    if (i === routeLength - 1) {
+        return denseHeights[denseHeights.length - 1] || 0
+    }
+    const index = i * (samplesPerSegment + 1)
+    return denseHeights[index] || 0
 }
 
 /**
  * 纯前端核心函数：根据已有路径点，生成无人机飞行计划。
  */
-function buildLocalFlight(route, routeHeights, options) {
+function buildLocalFlight(route, denseCoords, denseHeights, options) {
     const speedMps = options.speedMps ?? 15
     const hoverSeconds = options.hoverSeconds ?? 1
     const sampleIntervalSeconds = options.sampleIntervalSeconds ?? 0.5
     const altitudeMeters = options.altitudeMeters ?? 100
 
+    const samplesPerSegment = options.samplesPerSegment ?? 20
     const points = []
-    let currentTime = 0
+    let currentTime = 0  // 当前累计时间
     let previousHeading = 0
 
     for (let i = 0; i < route.length; i++) {
         const current = route[i]
-        const height = (routeHeights[i] || 0) + altitudeMeters
+        const currentGroundHeight = routePointGroundHeight(
+            i,
+            route.length,
+            denseHeights,
+            samplesPerSegment,
+        )
+        const height = currentGroundHeight + altitudeMeters
         let heading
         if (i < route.length - 1) {
             const next = route[i + 1]
@@ -92,41 +145,64 @@ function buildLocalFlight(route, routeHeights, options) {
         }
         previousHeading = heading
         // 到达病树点
-        points.push(createPoint(currentTime, current.lng, current.lat, height, heading))
+        points.push(
+            createPoint(
+                currentTime, current.lng, current.lat, height, heading
+            )
+        )
         // 悬停观察
         currentTime += hoverSeconds
         if (hoverSeconds > 0) {
-            points.push(createPoint(currentTime, current.lng, current.lat, height, heading))
+            points.push(
+                createPoint(
+                    currentTime, current.lng, current.lat, height, heading
+                )
+            )
         }
         // 从当前病树点飞向下一个病树点
         if (i < route.length - 1) {
             const next = route[i + 1]
             const distance = haversine(current.lat, current.lng, next.lat, next.lng)
             const duration = distance / speedMps
-            /**
-             * 为什么不用 for(let t=0; t<duration; t+=0.5)
-             * 因为 duration 不一定是 0.5 的整数倍，直接累加可能最后越过终点
-             * 这里先算步数，再用比例插值，实际步长一定不超过 0.5 秒
-             */
-            const steps = Math.max(1, Math.ceil(duration / sampleIntervalSeconds))
-            for (let k = 1; k < steps; k++) {
-                const ratio = k / steps
-                const lng = current.lng + (next.lng - current.lng) * ratio
-                const lat = current.lat + (next.lat - current.lat) * ratio
-
-                const startHeight = routeHeights[i] || 0
-                const endHeight = routeHeights[i + 1] || 0
-
-                // 中间点高度线性插值。
-                const interpHeight = startHeight + (endHeight - startHeight) * ratio + altitudeMeters
-
-                points.push(createPoint(
-                    currentTime + duration * ratio,
-                    lng,
+            const startIndex = i * (samplesPerSegment + 1)
+            // ===== 遍历中间密集点 =====
+            for (let k = 1; k < samplesPerSegment; k++) {
+                const index = startIndex + k
+                const lng = denseCoords[index][0]
+                const lat = denseCoords[index][1]
+                // ===== 中间点真实地形高度 =====
+                const groundHeight = denseHeights[index] || 0
+                const nextGroundHeight = denseHeights[index + 1] || 0
+                const finalHeight = groundHeight + altitudeMeters
+                // ===== 沿路径切线方向计算航向 =====
+                const prevPoint = denseCoords[index - 1]
+                const nextPoint = denseCoords[index + 1]
+                const curveHeading = initialBearing(
+                    prevPoint[1],
+                    prevPoint[0],
+                    nextPoint[1],
+                    nextPoint[0]
+                )
+                const verticalDistance = nextGroundHeight - groundHeight
+                const horizontalDistance = haversine(
                     lat,
-                    interpHeight,
-                    heading
-                ))
+                    lng,
+                    nextPoint[1],
+                    nextPoint[0]
+                )
+                const pitchDeg = -Cesium.Math.toDegrees(
+                    Math.atan2(verticalDistance, horizontalDistance)
+                )
+                const ratio = k / samplesPerSegment
+                points.push(
+                    createPoint(
+                        currentTime + duration * ratio,
+                        lng, lat,
+                        finalHeight,
+                        curveHeading,
+                        pitchDeg,
+                    )
+                )
             }
             currentTime += duration
         }
@@ -134,18 +210,13 @@ function buildLocalFlight(route, routeHeights, options) {
     return {
         speedMps,
         hoverSeconds,
-        sampleIntervalSeconds,
         altitudeMeters,
+        samplesPerSegment,
         totalDurationSeconds: currentTime,
         points,
-
-        /**
-         * flightLine 只给二维经纬度。
-         * 三维高度画线时再加，因为画线要用 routeHeights。
-         */
         flightLine: {
             type: 'LineString',
-            coordinates: route.map((p) => [p.lng, p.lat]),
+            coordinates: points.map((p) => [p.lng, p.lat, p.height]),
         },
     }
 }
@@ -164,8 +235,17 @@ function buildCzml(flight) {
     const interval = `${Cesium.JulianDate.toIso8601(start)}/${Cesium.JulianDate.toIso8601(stop)}`
 
     const cartographicDegrees = []
-    flight.points.forEach((point) => {
-        cartographicDegrees.push(point.time, point.lng, point.lat, point.height)
+    const unitQuaternion = []
+    flight.points.forEach((p) => {
+        cartographicDegrees.push(p.time, p.lng, p.lat, p.height)
+        // ===== 每个关键帧都加入朝向 =====
+        unitQuaternion.push(
+            p.time,
+            p.orientation.x,
+            p.orientation.y,
+            p.orientation.z,
+            p.orientation.w
+        )
     })
     return [
         {
@@ -189,10 +269,17 @@ function buildCzml(flight) {
                 cartographicDegrees,
             },
 
+            orientation: {
+                interpolationAlgorithm: 'LAGRANGE',
+                interpolationDegree: 1,
+                epoch: Cesium.JulianDate.toIso8601(start),
+                unitQuaternion,
+            },
+
             model: {
                 gltf: '/models/drone.glb',
-                scale: 40,
-                minimumPixelSize: 64,
+                scale: 10,
+                minimumPixelSize: 32,
             },
         },
     ]
@@ -268,15 +355,15 @@ export function useDroneFlight() {
     /**
      * 画一条半透明的空中流光路线。
      */
-    function drawFlightLine(viewer, flight, routeHeights, altitudeMeters) {
-        const coords = flight.flightLine && flight.flightLine.coordinates
+    function drawFlightLine(viewer, flight) {
+        const coords = flight.flightLine?.coordinates
         if (!coords || coords.length < 2) return
 
-        const positions = coords.map((coord, index) =>
+        const positions = coords.map((coord) =>
             Cesium.Cartesian3.fromDegrees(
                 coord[0],
                 coord[1],
-                (routeHeights[index] || 0) + altitudeMeters
+                coord[2]
             )
         )
         flightLineEntity = viewer.entities.add({
@@ -287,7 +374,7 @@ export function useDroneFlight() {
                 material: new LineFlowMaterialProperty({
                     color: Cesium.Color.fromCssColorString('#2fd6ff').withAlpha(0.25),
                     flowColor: Cesium.Color.fromCssColorString('#ffffff'),
-                    speed: 12,
+                    speed: 8,
                     percent: 0.08,
                     gradient: 0.12,
                     startTime: 0,
@@ -309,26 +396,25 @@ export function useDroneFlight() {
             store.setDroneStatus('idle')
             return
         }
-        let routeHeights = []
+        const samplesPerSegment = 20
+        const altitudeMeters = 100
+        const denseCoords = buildDenseLngLatPoints(route, samplesPerSegment)
+        let denseHeights = []
         try {
-            const sampled = await sampleTerrainHeight(
-                route.map((p) => [p.lng, p.lat]),
-                viewer
-            )
-            routeHeights = sampled.map((cartesian) => {
+            const sampled = await sampleTerrainHeight(denseCoords, viewer)
+            denseHeights = sampled.map((cartesian) => {
                 const carto = Cesium.Cartographic.fromCartesian(cartesian)
                 return carto.height || 0
             })
         } catch (e) {
             console.warn('地形采样失败，使用 0 米地面高度', e)
-            routeHeights = route.map(() => 0)
+            denseHeights = denseCoords.map(() => 0)
         }
-        const altitudeMeters = 100
-        const flight = await buildLocalFlight(route, routeHeights, {
+        const flight = buildLocalFlight(route, denseCoords, denseHeights, {
             speedMps: 15,
             hoverSeconds: 1,
-            sampleIntervalSeconds: 0.5,
             altitudeMeters,
+            samplesPerSegment,
         })
         const czml = buildCzml(flight)
         /**
@@ -338,7 +424,7 @@ export function useDroneFlight() {
          */
         droneDataSource = await Cesium.CzmlDataSource.load(czml)
         viewer.dataSources.add(droneDataSource)
-        drawFlightLine(viewer, flight, routeHeights, altitudeMeters)
+        drawFlightLine(viewer, flight)
         saveAndStartClock(viewer, flight)
 
         /**
