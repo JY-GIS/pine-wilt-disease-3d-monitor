@@ -26,6 +26,7 @@ function computeFollowOffset(headingDeg) {
  */
 function getFollowCameraPosition(dronePosition, headingDeg) {
     const offset = computeFollowOffset(headingDeg)
+    // 创建矩阵可以把“无人机局部ENU坐标”转换成“Cesium世界坐标”
     const transform = Cesium.Transforms.eastNorthUpToFixedFrame(dronePosition)
     /**
     * API：Cesium.Matrix4.multiplyByPoint

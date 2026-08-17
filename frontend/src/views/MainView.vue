@@ -23,24 +23,38 @@
             <section class="center-map">
                 <div id="cesiumContainer"></div>
                 <FpsCounter :fps="fps"  />
-                <button class="mode-switch-btn" @click="handleModeSwitch(viewer)">
+                <button class="mode-switch-btn mode-switch-btn--left" @click="handleModeSwitch(viewer)">
                     {{ isPrimitiveMode ? '切换到 Entity 模式' : '切换到 Primitive 模式' }}
                 </button>
-                <button class="mode-switch-btn" style="left: 10%" @click="handleLoadHK">
+                <button class="mode-switch-btn mode-switch-btn--left" style="top: 48px" @click="handleLoadHK">
                     {{ tilesetState.loaded ? '卸载香港数据' : '加载香港 3D Tiles' }}
                 </button>
-                <button class="mode-switch-btn" style="left: 30%" @click="handleTogglePick">
-                    {{ coords.enabled ? '关闭取坐标' : '点击取坐标' }}
-                </button>
-                <button class="mode-switch-btn" style="left: 70%" @click="handleTogglePine">
+                <button class="mode-switch-btn mode-switch-btn--right" @click="handleTogglePine">
                     {{ pineState.enabled ? '切换回病树点' : '切换 3D 松树' }}
                 </button>
-                <div class="coords-panel" v-if="coords.lon !== null">
-                    <button class="coords-close" @click="closeCoordsPanel" title="关闭">❌</button>
-                    <div>经度：{{ coords.lon }}°</div>
-                    <div>纬度：{{ coords.lat }}°</div>
-                    <div>高程：{{ coords.height }} m</div>
-                    <button class="coords-copy" @click="copyCoords">复制</button>
+                <div class="measure-result-panel" v-if="measureState.enabled || measureState.finished">
+                    <div class="measure-result-title">
+                        <span>测距结果</span>
+                        <button class="measure-result-close" @click="handleClearMeasure" title="关闭">×</button>
+                    </div>
+                    <div class="measure-result-body">
+                        <span>段数：{{ measureState.segmentCount }}</span>
+                        <span>水平：{{ formatDistance(measureState.totalHorizontal) }}</span>
+                        <span>空间：{{ formatDistance(measureState.totalSpatial) }}</span>
+                        <span>高差：{{ formatDistance(measureState.totalVertical) }}</span>
+                        <span>坡度：{{ formatAngle(measureState.totalSlopeAngle) }}</span>
+                    </div>
+                </div>
+                <div class="map-tools-bottom-left">
+                    <button class="tool-btn" title="点击取坐标" @click="handleTogglePick">📍</button>
+                    <button class="tool-btn" :title="measureState.enabled ? '右键结束测距' : '测距'" @click="handleToggleMeasure">📏</button>
+                    <div class="coords-panel" v-if="coords.lon !== null">
+                        <button class="coords-close" @click="closeCoordsPanel" title="关闭">❌</button>
+                        <div>经度：{{ coords.lon }}°</div>
+                        <div>纬度：{{ coords.lat }}°</div>
+                        <div>高程：{{ coords.height }} m</div>
+                        <button class="coords-copy" @click="copyCoords">复制</button>
+                    </div>
                 </div>
             </section>
 
@@ -79,6 +93,8 @@
     import { useClickCoordinates } from '../composables/useClickCoordinates.js'
     import { usePineTreesModel3D } from '../composables/usePineTreesModel3D.js'
     import { useDroneCameraFollow } from '../composables/useDroneCameraFollow.js'
+    import { useMeasureDistance, measureState } from '../composables/useMeasureDistance.js'
+    import { formatDistance, formatAngle } from '../utils/measureUtils.js'
 
     //====================== 【全局变量统一管理】 ======================
     const { 
@@ -172,6 +188,11 @@
         applyGradeFilter: applyPineGradeFilter,
         unloadPineEntities,
     } = usePineTreesModel3D()
+    const {
+        setRestoreCallback: setMeasureRestoreCallback,
+        toggle: toggleMeasure,
+        clear: clearMeasure,
+    } = useMeasureDistance()
 
     // ===== 函数（仍需 viewer，保留 provide） =====
     provide('deleteTree', async () => { await deleteTree(viewer);refreshGradeStats() })
@@ -206,7 +227,18 @@
 
     // ==================== 【点击取坐标】 ====================
     function handleTogglePick() {
+        // 取坐标前先退出测距，避免左键冲突
+        if (measureState.enabled) toggleMeasure(viewer)
         togglePickMode(viewer)
+    }
+
+    // ====== 测距切换与清空 ======
+    function handleToggleMeasure() {
+        if (coords.enabled) togglePickMode(viewer) // 退出取坐标，避免左键冲突
+        toggleMeasure(viewer)
+    }
+    function handleClearMeasure() {
+        clearMeasure(viewer)
     }
 
     function copyCoords() {
@@ -264,6 +296,13 @@
             highLightTree(viewer)
             setupProvinceInteraction(viewer)
         })
+        setMeasureRestoreCallback(() => {
+            handleLeftClickEvent(viewer)
+            setupDoubleClickToFly(viewer)
+            generateMergedBuffer(viewer)
+            highLightTree(viewer)
+            setupProvinceInteraction(viewer)
+        })
     })
 
     // ===== 时空趋势分析：区域联动 =====
@@ -305,6 +344,7 @@
         clearCameraFollow(viewer)
         clearDrone(viewer)
         unloadPineEntities(viewer)
+        clearMeasure(viewer)
         destroyViewer()
     })
 
@@ -394,11 +434,15 @@
     .mode-switch-btn:hover {
         background: rgba(0, 212, 255, 0.4);
     }
+    .mode-switch-btn--left { 
+        left: 10px; transform: none; 
+    }
+    .mode-switch-btn--right { 
+        left: auto; right: 10px; transform: none; 
+    }
 
     .coords-panel {
-        position: absolute;
-        bottom: 8px;
-        left: 8px;
+        position: relative;
         z-index: 20;
         background: rgba(10, 40, 60, 0.9);
         border: 1px solid #00d4ff;
@@ -440,6 +484,68 @@
     }
     .coords-close:hover {
         opacity: 1;
+    }
+
+    .map-tools-bottom-left {
+        position: absolute;
+        left: 8px;
+        bottom: 8px;
+        z-index: 60;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        align-items: flex-start;
+    }
+
+    .tool-btn {
+        width: 40px;
+        height: 40px;
+        font-size: 20px;
+        line-height: 1;
+        background: rgba(0, 212, 255, 0.2);
+        border: 1px solid #00d4ff;
+        color: #4dd9ff;
+        border-radius: 4px;
+        cursor: pointer;
+    }
+    .tool-btn:hover { background: rgba(0, 212, 255, 0.4); }
+
+    .measure-result-panel {
+        position: absolute;
+        top: 10px;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 60;
+        background: rgba(10, 40, 60, 0.9);
+        border: 1px solid #00d4ff;
+        color: #e8f0fe;
+        border-radius: 4px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+        min-width: 320px;
+    }
+    .measure-result-title {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 6px 10px;
+        border-bottom: 1px solid rgba(0, 212, 255, 0.3);
+        font-size: 13px;
+    }
+    .measure-result-close {
+        background: transparent;
+        border: none;
+        color: #e8f0fe;
+        cursor: pointer;
+        font-size: 16px;
+        line-height: 1;
+    }
+    .measure-result-body {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px 16px;
+        padding: 8px 10px;
+        font-size: 12px;
+        font-family: Consolas, 'Courier New', monospace;
     }
 
     :deep(.cesium-viewer-bottom) {

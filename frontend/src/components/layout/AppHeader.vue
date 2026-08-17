@@ -1,6 +1,6 @@
 <template>
   <header class="top-header">
-    <div class="header-side header-left">系统时间: {{ formattedTime }}</div>
+    <div class="header-side header-left">⏰系统时间: {{ formattedTime }}</div>
     <div class="header-title">松材线虫病疫情监测平台</div>
     <div class="header-side header-right">
       管理员: {{ username }}
