@@ -1,3 +1,6 @@
+// ★ 引入 turf，测面积用 
+import * as turf from '@turf/turf'
+
 /**
  * 测量工具 —— 计算与格式化（纯函数，不依赖 viewer）
  */
@@ -38,4 +41,60 @@ export function formatDistance(meters) {
 export function formatAngle(deg) {
     if (deg == null || isNaN(deg)) return '0°'
     return deg.toFixed(1) + '°'
+}
+
+/**
+ * 计算两点高差（有符号，起点高程 - 终点高程）
+ */
+export function calcHeightDiff(heightA, hrightB) {
+    return heightA - hrightB
+}
+/**
+ * 高度格式化
+ */
+export function formatHeight(meters) {
+    if (meters == null || isNaN(meters)) return '0 m'
+    return meters.toFixed(1) + ' m'
+}
+export function formatHeightCompare(heightA, heightB) {
+    const diff = calcHeightDiff(heightA, heightB)
+    const abs = Math.abs(diff)
+    if (abs < 0.05) return '两点高程相同'
+    const relation = diff > 0 ? '高' : '低'
+    return `A比B${relation} ${formatHeight(abs)}`
+}
+
+/**
+ * 面积计算与格式化
+ */
+export function calcArea(positions) {
+    if (!positions || positions.length < 3) return { areaM2: 0, centroid: null }
+    const ring = positions.map((p) => {
+        // Cartographic.fromCartesian：世界坐标 → 经纬度 + 椭球高（这里只取经纬度）
+        const c = Cesium.Cartographic.fromCartesian(p)
+        return [
+            Cesium.Math.toDegrees(c.longitude),
+            Cesium.Math.toDegrees(c.latitude)
+        ]
+    })
+    const first = ring[0]
+    const last = ring[ring.length - 1]
+    if (first[0] !== last[0] || first[1] !== last[1]) {
+        ring.push([first[0], first[1]])
+    }
+    const polygon = turf.polygon([ring])
+    const areaM2 = turf.area(polygon)
+    // turf.centroid 返回一个 GeoJSON 的 Point 要素
+    // .geometry.coordinates 提取的就是 GeoJSON 标准定义的点坐标数组
+    const centroid = turf.centroid(polygon).geometry.coordinates
+    return { areaM2, centroid }
+}
+
+/**
+ * 面积格式化：>= 1 km² 显示 km²，< 1 km² 显示 m²
+ */
+export function formatArea(m2) {
+    if (m2 == null || isNaN(m2)) return '0 m²'
+    if (m2 >= 1e6) return (m2 / 1e6).toFixed(2) + ' km²'
+    return m2.toFixed(1) + ' m²'
 }

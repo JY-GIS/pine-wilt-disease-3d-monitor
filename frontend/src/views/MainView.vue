@@ -32,22 +32,34 @@
                 <button class="mode-switch-btn mode-switch-btn--right" @click="handleTogglePine">
                     {{ pineState.enabled ? '切换回病树点' : '切换 3D 松树' }}
                 </button>
-                <div class="measure-result-panel" v-if="measureState.enabled || measureState.finished">
+                <div class="measure-result-panel" v-if="(measureState.enabled || measureState.finished) || heightState.finished || (areaState.enabled || areaState.finished)">
                     <div class="measure-result-title">
-                        <span>测距结果</span>
+                        <span>{{ (measureState.enabled || measureState.finished) ? '测距结果' : (heightState.finished ? '测高结果' : '面积结果') }}</span>
                         <button class="measure-result-close" @click="handleClearMeasure" title="关闭">×</button>
                     </div>
                     <div class="measure-result-body">
-                        <span>段数：{{ measureState.segmentCount }}</span>
-                        <span>水平：{{ formatDistance(measureState.totalHorizontal) }}</span>
-                        <span>空间：{{ formatDistance(measureState.totalSpatial) }}</span>
-                        <span>高差：{{ formatDistance(measureState.totalVertical) }}</span>
-                        <span>坡度：{{ formatAngle(measureState.totalSlopeAngle) }}</span>
+                        <template v-if="measureState.enabled || measureState.finished">
+                            <span>段数：{{ measureState.segmentCount }}</span>
+                            <span>水平：{{ formatDistance(measureState.totalHorizontal) }}</span>
+                            <span>空间：{{ formatDistance(measureState.totalSpatial) }}</span>
+                            <span>高差：{{ formatDistance(measureState.totalVertical) }}</span>
+                            <span>坡度：{{ formatAngle(measureState.totalSlopeAngle) }}</span>
+                        </template>
+                        <template v-else-if="heightState.finished">
+                            <span>{{ formatHeightCompare(heightState.heightA, heightState.heightB) }}</span>
+                            <span>起点(A)高程：{{ formatHeight(heightState.heightA) }}</span>
+                            <span>终点(B)高程：{{ formatHeight(heightState.heightB) }}</span>
+                        </template>
+                        <template v-else>
+                            <span>面积：{{ formatArea(areaState.areaM2) }}</span>
+                        </template>
                     </div>
                 </div>
                 <div class="map-tools-bottom-left">
                     <button class="tool-btn" title="点击取坐标" @click="handleTogglePick">📍</button>
                     <button class="tool-btn" :title="measureState.enabled ? '右键结束测距' : '测距'" @click="handleToggleMeasure">📏</button>
+                    <button class="tool-btn" :title="heightState.enabled ? '右键取消测高' : '测高度'" @click="handleToggleHeight">📐</button>
+                    <button class="tool-btn" :title="areaState.enabled ? '右键闭合面积' : '测面积'" @click="handleToggleArea">🔲</button>
                     <div class="coords-panel" v-if="coords.lon !== null">
                         <button class="coords-close" @click="closeCoordsPanel" title="关闭">❌</button>
                         <div>经度：{{ coords.lon }}°</div>
@@ -94,7 +106,9 @@
     import { usePineTreesModel3D } from '../composables/usePineTreesModel3D.js'
     import { useDroneCameraFollow } from '../composables/useDroneCameraFollow.js'
     import { useMeasureDistance, measureState } from '../composables/useMeasureDistance.js'
-    import { formatDistance, formatAngle } from '../utils/measureUtils.js'
+    import { useMeasureHeight, heightState } from '../composables/useMeasureHeight.js'
+    import { useMeasureArea, areaState } from '../composables/useMeasureArea.js'
+    import { formatDistance, formatAngle, formatHeight, formatHeightCompare, formatArea } from '../utils/measureUtils.js'
 
     //====================== 【全局变量统一管理】 ======================
     const { 
@@ -193,6 +207,16 @@
         toggle: toggleMeasure,
         clear: clearMeasure,
     } = useMeasureDistance()
+    const {
+        setRestoreCallback: setHeightRestoreCallback,
+        toggle: toggleHeight,
+        clear: clearHeight,
+    } = useMeasureHeight()
+    const {
+        setRestoreCallback: setAreaRestoreCallback,
+        toggle: toggleArea,
+        clear: clearArea,
+    } = useMeasureArea()
 
     // ===== 函数（仍需 viewer，保留 provide） =====
     provide('deleteTree', async () => { await deleteTree(viewer);refreshGradeStats() })
@@ -229,18 +253,35 @@
     function handleTogglePick() {
         // 取坐标前先退出测距，避免左键冲突
         if (measureState.enabled) toggleMeasure(viewer)
+        if (heightState.enabled) toggleHeight(viewer)
+        if (areaState.enabled) toggleArea(viewer)
         togglePickMode(viewer)
     }
 
     // ====== 测距切换与清空 ======
     function handleToggleMeasure() {
-        if (coords.enabled) togglePickMode(viewer) // 退出取坐标，避免左键冲突
+        if (coords.enabled) togglePickMode(viewer)
+        if (heightState.enabled) toggleHeight(viewer)
+        if (areaState.enabled) toggleArea(viewer)
         toggleMeasure(viewer)
+    }
+    function handleToggleHeight() {
+        if (coords.enabled) togglePickMode(viewer)
+        if (measureState.enabled) toggleMeasure(viewer)
+        if (areaState.enabled) toggleArea(viewer)
+        toggleHeight(viewer)
+    }
+    function handleToggleArea() {
+        if (coords.enabled) togglePickMode(viewer)
+        if (measureState.enabled) toggleMeasure(viewer)
+        if (heightState.enabled) toggleHeight(viewer)
+        toggleArea(viewer)
     }
     function handleClearMeasure() {
         clearMeasure(viewer)
+        clearHeight(viewer)
+        clearArea(viewer)
     }
-
     function copyCoords() {
         const text = `${coords.lon}, ${coords.lat}, ${coords.height}`
         navigator.clipboard?.writeText(text)
@@ -303,6 +344,20 @@
             highLightTree(viewer)
             setupProvinceInteraction(viewer)
         })
+        setHeightRestoreCallback(() => {
+            handleLeftClickEvent(viewer)
+            setupDoubleClickToFly(viewer)
+            generateMergedBuffer(viewer)
+            highLightTree(viewer)
+            setupProvinceInteraction(viewer)
+        })
+        setAreaRestoreCallback(() => {
+            handleLeftClickEvent(viewer)
+            setupDoubleClickToFly(viewer)
+            generateMergedBuffer(viewer)
+            highLightTree(viewer)
+            setupProvinceInteraction(viewer)
+        })
     })
 
     // ===== 时空趋势分析：区域联动 =====
@@ -345,6 +400,8 @@
         clearDrone(viewer)
         unloadPineEntities(viewer)
         clearMeasure(viewer)
+        clearHeight(viewer)
+        clearArea(viewer)
         destroyViewer()
     })
 
