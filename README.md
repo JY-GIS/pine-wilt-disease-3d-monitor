@@ -25,6 +25,7 @@
 pine-wilt-disease-3d-monitor/
 ├── frontend/   # 前端：Vue 3 + Vite + Cesium 三维可视化
 └── backend/    # 后端：Spring Boot + MyBatis + PostgreSQL/PostGIS
+└── database/   # 数据库恢复脚本、索引脚本、业务数据及初始化说明
 ```
 
 ## 技术栈
@@ -46,3 +47,27 @@ pine-wilt-disease-3d-monitor/
 2. 创建 `.env.local` 文件，写入一行：`VITE_CESIUM_TOKEN=你的Cesium Ion Token`
 3. 执行 `pnpm install`
 4. 执行 `pnpm dev`，浏览器打开提示的地址
+
+### 数据库初始化
+
+数据库环境要求：
+
+- PostgreSQL 14.23
+- PostGIS 3.6.1
+- `postgis_sfcgal`、`cube`、`earthdistance` 扩展
+
+初始化顺序：
+
+1. 创建空数据库，例如 `songcai`
+2. 执行 `database/schema.sql`
+3. 执行 `database/index.sql`
+4. 执行 `database/data.sql`
+5. 按 `database/README.md` 的说明导入行政区划数据
+
+示例：
+
+```bash
+psql -U postgres -d songcai -f database/schema.sql
+psql -U postgres -d songcai -f database/index.sql
+psql -U postgres -d songcai -f database/data.sql
+```

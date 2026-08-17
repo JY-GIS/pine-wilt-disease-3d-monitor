@@ -1,2 +1,4 @@
 downloads/
 frontend/public/3dtiles/
+**/.idea/
+*.iml
