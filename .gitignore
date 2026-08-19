@@ -2,3 +2,17 @@ downloads/
 frontend/public/3dtiles/
 **/.idea/
 *.iml
+
+# Python local environments and caches
+.venv/
+venv/
+env/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.ipynb_checkpoints/
+
+# Local package-manager cache
+.tmp-npm-cache/
