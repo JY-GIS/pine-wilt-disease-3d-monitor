@@ -18,6 +18,11 @@ export default defineConfig({
       '/geoserver': {
         target: 'http://localhost:8081',
         changeOrigin: true
+      },
+      '/tree-tiles': {
+        target: 'http://localhost:8000',
+        changeOrigin: true,
+        rewrite: path => path.replace(/^\/tree-tiles/, '')
       }
     }
   }

@@ -44,7 +44,7 @@ const GRADE_SILHOUETTE = {
 }
 
 // 实体方案性能上限：病树超过该数量时只保留高等级的前 N 棵
-const MAX_PINE_TREES = 600
+// const MAX_PINE_TREES = 600
 // 模型缩放系数（按模型实际尺寸调整，一般 2~5）
 const MODEL_SCALE = 10
 
@@ -57,21 +57,22 @@ export function usePineTreesModel3D() {
         const rows = treeState.rowTrees || []
         if (rows.length === 0) return
         // --- 数量保护 ---
+        // let trees = rows
+        // if (trees.length > MAX_PINE_TREES) {
+        //     // 可读性较差 -> 注释掉
+        //     // trees = [...trees].sort((a,b) => b.grade - a.grade)
+        //     //                   .slice(0, MAX_PINE_TREES)
+        //     // 可读性更好
+        //     const sortedTrees = [...trees].sort((a, b) => b.grade - a.grade);
+        //     trees = sortedTrees.slice(0, MAX_PINE_TREES);
+        //     // 错误！会直接改变原始数组顺序 trees.sort((a,b)=>b.grade-a.grade)
+        //     // 使用[...trees]新建数组，规避了这个问题
+        //     console.warn(
+        //         `[usePineTrees] 病树共 ${rows.length} 棵，超过上限 ${MAX_PINE_TREES}，3D 松树只显示最高等级的前 ${MAX_PINE_TREES} 棵`
+        //     )
+        // }
         let trees = rows
-        if (trees.length > MAX_PINE_TREES) {
-            // 可读性较差 -> 注释掉
-            // trees = [...trees].sort((a,b) => b.grade - a.grade)
-            //                   .slice(0, MAX_PINE_TREES)
-            // 可读性更好
-            const sortedTrees = [...trees].sort((a, b) => b.grade - a.grade);
-            trees = sortedTrees.slice(0, MAX_PINE_TREES);
-            // 错误！会直接改变原始数组顺序 trees.sort((a,b)=>b.grade-a.grade)
-            // 使用[...trees]新建数组，规避了这个问题
-            console.warn(
-                `[usePineTrees] 病树共 ${rows.length} 棵，超过上限 ${MAX_PINE_TREES}，3D 松树只显示最高等级的前 ${MAX_PINE_TREES} 棵`
-            )
-        }
-        for (const tree of trees) {
+        for (const tree of rows) {
             const modelUrl = GRADE_TO_MODEL[tree.grade] || GRADE_TO_MODEL[1]
             const entity = viewer.entities.add({
                 position: Cesium.Cartesian3.fromDegrees(
