@@ -1,0 +1,1836 @@
+{
+  "cellCount": 64,
+  "instanceCount": 10205,
+  "businessIdProperty": "id",
+  "uniqueBusinessIdCount": 10205,
+  "metadataProperties": [
+    "disease_level",
+    "id"
+  ],
+  "sampleStatusCounts": {
+    "bilinear": 10205
+  },
+  "originalHeightRange": [
+    -0.23942120652645826,
+    0.2059572385624051
+  ],
+  "demHeightRange": [
+    1.2022964502544098,
+    1074.221724733954
+  ],
+  "heightChangeRange": [
+    1.2023059385688,
+    1074.1594494183191
+  ],
+  "maximumInputHighLowHorizontalDifferenceMeters": 0.0,
+  "maximumOutputHighLowHorizontalDifferenceMeters": 0.0,
+  "maximumOutputHorizontalErrorMeters": 0.0026628672341670575,
+  "maximumOutputHeightErrorMeters": 0.0019248071803303901,
+  "changedBinaryByteCounts": {
+    "low": 87699,
+    "high": 87699
+  },
+  "rootRegion": [
+    2.0394184628913434,
+    0.6073815537034762,
+    2.0710821262631494,
+    0.6496054446429451,
+    -4,
+    1135
+  ],
+  "verticalDatumWarning": "DEM values are temporarily used as Cesium ellipsoid heights; the DEM vertical datum has not yet been verified.",
+  "cells": [
+    {
+      "cellId": "3_0_0",
+      "instanceCount": 22,
+      "demHeightRange": [
+        34.40735694957766,
+        48.809467317765666
+      ],
+      "inputHighLowHorizontalDifferenceMeters": 0.0,
+      "outputHighLowHorizontalDifferenceMeters": 0.0,
+      "outputCoordinateErrors": {
+        "low": {
+          "maximumHorizontalErrorMeters": 0.0008927310928880054,
+          "maximumHeightErrorMeters": 0.0011121295392513275
+        },
+        "high": {
+          "maximumHorizontalErrorMeters": 0.0008927310928880054,
+          "maximumHeightErrorMeters": 0.0011121295392513275
+        }
+      },
+      "region": [
+        2.0394184628913434,
+        0.6073815537034762,
+        2.043376420812819,
+        0.6126595400709098,
+        29,
+        109
+      ]
+    },
+    {
+      "cellId": "3_0_1",
+      "instanceCount": 68,
+      "demHeightRange": [
+        38.65413515381442,
+        410.97646063975117
+      ],
+      "inputHighLowHorizontalDifferenceMeters": 0.0,
+      "outputHighLowHorizontalDifferenceMeters": 0.0,
+      "outputCoordinateErrors": {
+        "low": {
+          "maximumHorizontalErrorMeters": 0.0006050178830502236,
+          "maximumHeightErrorMeters": 0.00037649527791216997
+        },
+        "high": {
+          "maximumHorizontalErrorMeters": 0.0006050178830502236,
+          "maximumHeightErrorMeters": 0.00037649527791216997
+        }
+      },
+      "region": [
+        2.0394184628913434,
+        0.6126595400709098,
+        2.043376420812819,
+        0.6179375264383434,
+        33,
+        471
+      ]
+    },
+    {
+      "cellId": "3_1_0",
+      "instanceCount": 70,
+      "demHeightRange": [
+        43.01306025561644,
+        202.98928896361758
+      ],
+      "inputHighLowHorizontalDifferenceMeters": 0.0,
+      "outputHighLowHorizontalDifferenceMeters": 0.0,
+      "outputCoordinateErrors": {
+        "low": {
+          "maximumHorizontalErrorMeters": 0.0012514956523984391,
+          "maximumHeightErrorMeters": 0.0008631544187664986
+        },
+        "high": {
+          "maximumHorizontalErrorMeters": 0.0012514956523984391,
+          "maximumHeightErrorMeters": 0.0008631544187664986
+        }
+      },
+      "region": [
+        2.043376420812819,
+        0.6073815537034762,
+        2.047334378734295,
+        0.6126595400709098,
+        38,
+        263
+      ]
+    },
+    {
+      "cellId": "3_1_1",
+      "instanceCount": 259,
+      "demHeightRange": [
+        53.823255241363135,
+        444.9795247290066
+      ],
+      "inputHighLowHorizontalDifferenceMeters": 0.0,
+      "outputHighLowHorizontalDifferenceMeters": 0.0,
+      "outputCoordinateErrors": {
+        "low": {
+          "maximumHorizontalErrorMeters": 0.000675640989516049,
+          "maximumHeightErrorMeters": 0.0005333241751941387
+        },
+        "high": {
+          "maximumHorizontalErrorMeters": 0.000675640989516049,
+          "maximumHeightErrorMeters": 0.0005333241751941387
+        }
+      },
+      "region": [
+        2.043376420812819,
+        0.6126595400709098,
+        2.047334378734295,
+        0.6179375264383434,
+        48,
+        505
+      ]
+    },
+    {
+      "cellId": "3_0_2",
+      "instanceCount": 75,
+      "demHeightRange": [
+        55.99999999999999,
+        139.39127701601683
+      ],
+      "inputHighLowHorizontalDifferenceMeters": 0.0,
+      "outputHighLowHorizontalDifferenceMeters": 0.0,
+      "outputCoordinateErrors": {
+        "low": {
+          "maximumHorizontalErrorMeters": 0.0010202346222267001,
+          "maximumHeightErrorMeters": 0.0006523953079238254
+        },
+        "high": {
+          "maximumHorizontalErrorMeters": 0.0010202346222267001,
+          "maximumHeightErrorMeters": 0.0006523953079238254
+        }
+      },
+      "region": [
+        2.0394184628913434,
+        0.6179375264383434,
+        2.043376420812819,
+        0.623215512805777,
+        50,
+        200
+      ]
+    },
+    {
+      "cellId": "3_0_3",
+      "instanceCount": 68,
+      "demHeightRange": [
+        76.99345375039219,
+        489.6741388708906
+      ],
+      "inputHighLowHorizontalDifferenceMeters": 0.0,
+      "outputHighLowHorizontalDifferenceMeters": 0.0,
+      "outputCoordinateErrors": {
+        "low": {
+          "maximumHorizontalErrorMeters": 0.002436723892242352,
+          "maximumHeightErrorMeters": 0.0018962476885917567
+        },
+        "high": {
+          "maximumHorizontalErrorMeters": 0.002436723892242352,
+          "maximumHeightErrorMeters": 0.0018962476885917567
+        }
+      },
+      "region": [
+        2.0394184628913434,
+        0.623215512805777,
+        2.043376420812819,
+        0.6284934991732107,
+        71,
+        550
+      ]
+    },
+    {
+      "cellId": "3_1_2",
+      "instanceCount": 254,
+      "demHeightRange": [
+        66.23655425977995,
+        407.70735475035224
+      ],
+      "inputHighLowHorizontalDifferenceMeters": 0.0,
+      "outputHighLowHorizontalDifferenceMeters": 0.0,
+      "outputCoordinateErrors": {
+        "low": {
+          "maximumHorizontalErrorMeters": 0.0011711019400334893,
+          "maximumHeightErrorMeters": 0.0009405506425537169
+        },
+        "high": {
+          "maximumHorizontalErrorMeters": 0.0011711019400334893,
+          "maximumHeightErrorMeters": 0.0009405506425537169
+        }
+      },
+      "region": [
+        2.043376420812819,
+        0.6179375264383434,
+        2.047334378734295,
+        0.623215512805777,
+        61,
+        468
+      ]
+    },
+    {
+      "cellId": "3_1_3",
+      "instanceCount": 239,
+      "demHeightRange": [
+        86.0,
+        271.38432142353486
+      ],
+      "inputHighLowHorizontalDifferenceMeters": 0.0,
+      "outputHighLowHorizontalDifferenceMeters": 0.0,
+      "outputCoordinateErrors": {
+        "low": {
+          "maximumHorizontalErrorMeters": 0.0021248649614542714,
+          "maximumHeightErrorMeters": 0.0017534801736474037
+        },
+        "high": {
+          "maximumHorizontalErrorMeters": 0.0021248649614542714,
+          "maximumHeightErrorMeters": 0.0017534801736474037
+        }
+      },
+      "region": [
+        2.043376420812819,
+        0.623215512805777,
+        2.047334378734295,
+        0.6284934991732107,
+        81,
+        332
+      ]
+    },
+    {
+      "cellId": "3_0_4",
+      "instanceCount": 80,
+      "demHeightRange": [
+        81.28805327049565,
+        946.9809399154327
+      ],
+      "inputHighLowHorizontalDifferenceMeters": 0.0,
+      "outputHighLowHorizontalDifferenceMeters": 0.0,
+      "outputCoordinateErrors": {
+        "low": {
+          "maximumHorizontalErrorMeters": 0.0009575791413001574,
+          "maximumHeightErrorMeters": 0.0009793175163963497
+        },
+        "high": {
+          "maximumHorizontalErrorMeters": 0.0009575791413001574,
+          "maximumHeightErrorMeters": 0.0009793175163963497
+        }
+      },
+      "region": [
+        2.0394184628913434,
+        0.6284934991732107,
+        2.043376420812819,
+        0.6337714855406443,
+        76,
+        1007
+      ]
+    },
+    {
+      "cellId": "3_0_5",
+      "instanceCount": 80,
+      "demHeightRange": [
+        126.0,
+        560.0371487547854
+      ],
+      "inputHighLowHorizontalDifferenceMeters": 0.0,
+      "outputHighLowHorizontalDifferenceMeters": 0.0,
+      "outputCoordinateErrors": {
+        "low": {
+          "maximumHorizontalErrorMeters": 0.0009832412552708057,
+          "maximumHeightErrorMeters": 0.0008092581868197612
+        },
+        "high": {
+          "maximumHorizontalErrorMeters": 0.0009832412552708057,
+          "maximumHeightErrorMeters": 0.0008092581868197612
+        }
+      },
+      "region": [
+        2.0394184628913434,
+        0.6337714855406443,
+        2.043376420812819,
+        0.6390494719080779,
+        121,
+        621
+      ]
+    },
+    {
+      "cellId": "3_1_4",
+      "instanceCount": 224,
+      "demHeightRange": [
+        89.0,
+        1074.221724733954
+      ],
+      "inputHighLowHorizontalDifferenceMeters": 0.0,
+      "outputHighLowHorizontalDifferenceMeters": 0.0,
+      "outputCoordinateErrors": {
+        "low": {
+          "maximumHorizontalErrorMeters": 0.001010117238926544,
+          "maximumHeightErrorMeters": 0.0010557978708050086
+        },
+        "high": {
+          "maximumHorizontalErrorMeters": 0.001010117238926544,
+          "maximumHeightErrorMeters": 0.0010557978708050086
+        }
+      },
+      "region": [
+        2.043376420812819,
+        0.6284934991732107,
+        2.047334378734295,
+        0.6337714855406443,
+        84,
+        1135
+      ]
+    },
+    {
+      "cellId": "3_1_5",
+      "instanceCount": 256,
+      "demHeightRange": [
+        180.17505321868705,
+        883.439167471984
+      ],
+      "inputHighLowHorizontalDifferenceMeters": 0.0,
+      "outputHighLowHorizontalDifferenceMeters": 0.0,
+      "outputCoordinateErrors": {
+        "low": {
+          "maximumHorizontalErrorMeters": 0.0012306718969908586,
+          "maximumHeightErrorMeters": 0.0013008638228484415
+        },
+        "high": {
+          "maximumHorizontalErrorMeters": 0.0012306718969908586,
+          "maximumHeightErrorMeters": 0.0013008638228484415
+        }
+      },
+      "region": [
+        2.043376420812819,
+        0.6337714855406443,
+        2.047334378734295,
+        0.6390494719080779,
+        175,
+        944
+      ]
+    },
+    {
+      "cellId": "3_0_6",
+      "instanceCount": 71,
+      "demHeightRange": [
+        10.101783177040488,
+        327.9621714062487
+      ],
+      "inputHighLowHorizontalDifferenceMeters": 0.0,
+      "outputHighLowHorizontalDifferenceMeters": 0.0,
+      "outputCoordinateErrors": {
+        "low": {
+          "maximumHorizontalErrorMeters": 0.0011621814426751157,
+          "maximumHeightErrorMeters": 0.0012295020278543234
+        },
+        "high": {
+          "maximumHorizontalErrorMeters": 0.0011621814426751157,
+          "maximumHeightErrorMeters": 0.0012295020278543234
+        }
+      },
+      "region": [
+        2.0394184628913434,
+        0.6390494719080779,
+        2.043376420812819,
+        0.6443274582755115,
+        5,
+        388
+      ]
+    },
+    {
+      "cellId": "3_0_7",
+      "instanceCount": 30,
+      "demHeightRange": [
+        10.0,
+        17.0
+      ],
+      "inputHighLowHorizontalDifferenceMeters": 0.0,
+      "outputHighLowHorizontalDifferenceMeters": 0.0,
+      "outputCoordinateErrors": {
+        "low": {
+          "maximumHorizontalErrorMeters": 0.0008584570583915625,
+          "maximumHeightErrorMeters": 0.00040779728442430496
+        },
+        "high": {
+          "maximumHorizontalErrorMeters": 0.0008584570583915625,
+          "maximumHeightErrorMeters": 0.00040779728442430496
+        }
+      },
+      "region": [
+        2.0394184628913434,
+        0.6443274582755115,
+        2.043376420812819,
+        0.6496054446429451,
+        5,
+        77
+      ]
+    },
+    {
+      "cellId": "3_1_6",
+      "instanceCount": 232,
+      "demHeightRange": [
+        10.51807433302747,
+        362.8091927269852
+      ],
+      "inputHighLowHorizontalDifferenceMeters": 0.0,
+      "outputHighLowHorizontalDifferenceMeters": 0.0,
+      "outputCoordinateErrors": {
+        "low": {
+          "maximumHorizontalErrorMeters": 0.0013269063569311865,
+          "maximumHeightErrorMeters": 0.0012110182469768915
+        },
+        "high": {
+          "maximumHorizontalErrorMeters": 0.0013269063569311865,
+          "maximumHeightErrorMeters": 0.0012110182469768915
+        }
+      },
+      "region": [
+        2.043376420812819,
+        0.6390494719080779,
+        2.047334378734295,
+        0.6443274582755115,
+        5,
+        423
+      ]
+    },
+    {
+      "cellId": "3_1_7",
+      "instanceCount": 73,
+      "demHeightRange": [
+        10.0,
+        21.619498431235115
+      ],
+      "inputHighLowHorizontalDifferenceMeters": 0.0,
+      "outputHighLowHorizontalDifferenceMeters": 0.0,
+      "outputCoordinateErrors": {
+        "low": {
+          "maximumHorizontalErrorMeters": 0.0005504679822709649,
+          "maximumHeightErrorMeters": 0.00029111653566360474
+        },
+        "high": {
+          "maximumHorizontalErrorMeters": 0.0005504679822709649,
+          "maximumHeightErrorMeters": 0.00029111653566360474
+        }
+      },
+      "region": [
+        2.043376420812819,
+        0.6443274582755115,
+        2.047334378734295,
+        0.6496054446429451,
+        5,
+        82
+      ]
+    },
+    {
+      "cellId": "3_2_0",
+      "instanceCount": 79,
+      "demHeightRange": [
+        85.89091555055437,
+        408.9911081752325
+      ],
+      "inputHighLowHorizontalDifferenceMeters": 0.0,
+      "outputHighLowHorizontalDifferenceMeters": 0.0,
+      "outputCoordinateErrors": {
+        "low": {
+          "maximumHorizontalErrorMeters": 0.000749025509840381,
+          "maximumHeightErrorMeters": 0.0003246553424105514
+        },
+        "high": {
+          "maximumHorizontalErrorMeters": 0.000749025509840381,
+          "maximumHeightErrorMeters": 0.0003246553424105514
+        }
+      },
+      "region": [
+        2.047334378734295,
+        0.6073815537034762,
+        2.0512923366557705,
+        0.6126595400709098,
+        80,
+        469
+      ]
+    },
+    {
+      "cellId": "3_2_1",
+      "instanceCount": 229,
+      "demHeightRange": [
+        86.36621606792323,
+        410.5920313118222
+      ],
+      "inputHighLowHorizontalDifferenceMeters": 0.0,
+      "outputHighLowHorizontalDifferenceMeters": 0.0,
+      "outputCoordinateErrors": {
+        "low": {
+          "maximumHorizontalErrorMeters": 0.001274334713547842,
+          "maximumHeightErrorMeters": 0.0011876945500262082
+        },
+        "high": {
+          "maximumHorizontalErrorMeters": 0.001274334713547842,
+          "maximumHeightErrorMeters": 0.0011876945500262082
+        }
+      },
+      "region": [
+        2.047334378734295,
+        0.6126595400709098,
+        2.0512923366557705,
+        0.6179375264383434,
+        81,
+        471
+      ]
+    },
+    {
+      "cellId": "3_3_0",
+      "instanceCount": 77,
+      "demHeightRange": [
+        157.94020415936964,
+        481.77284385845996
+      ],
+      "inputHighLowHorizontalDifferenceMeters": 0.0,
+      "outputHighLowHorizontalDifferenceMeters": 0.0,
+      "outputCoordinateErrors": {
+        "low": {
+          "maximumHorizontalErrorMeters": 0.0008851374452309091,
+          "maximumHeightErrorMeters": 0.000451014049758669
+        },
+        "high": {
+          "maximumHorizontalErrorMeters": 0.0008851374452309091,
+          "maximumHeightErrorMeters": 0.000451014049758669
+        }
+      },
+      "region": [
+        2.0512923366557705,
+        0.6073815537034762,
+        2.055250294577246,
+        0.6126595400709098,
+        152,
+        542
+      ]
+    },
+    {
+      "cellId": "3_3_1",
+      "instanceCount": 241,
+      "demHeightRange": [
+        133.0,
+        571.5450765222762
+      ],
+      "inputHighLowHorizontalDifferenceMeters": 0.0,
+      "outputHighLowHorizontalDifferenceMeters": 0.0,
+      "outputCoordinateErrors": {
+        "low": {
+          "maximumHorizontalErrorMeters": 0.0012669306064683771,
+          "maximumHeightErrorMeters": 0.0011424273252487183
+        },
+        "high": {
+          "maximumHorizontalErrorMeters": 0.0012669306064683771,
+          "maximumHeightErrorMeters": 0.0011424273252487183
+        }
+      },
+      "region": [
+        2.0512923366557705,
+        0.6126595400709098,
+        2.055250294577246,
+        0.6179375264383434,
+        128,
+        632
+      ]
+    },
+    {
+      "cellId": "3_2_2",
+      "instanceCount": 248,
+      "demHeightRange": [
+        96.45068870906604,
+        447.61616158256584
+      ],
+      "inputHighLowHorizontalDifferenceMeters": 0.0,
+      "outputHighLowHorizontalDifferenceMeters": 0.0,
+      "outputCoordinateErrors": {
+        "low": {
+          "maximumHorizontalErrorMeters": 0.001056878405298278,
+          "maximumHeightErrorMeters": 0.0009371057639953051
+        },
+        "high": {
+          "maximumHorizontalErrorMeters": 0.001056878405298278,
+          "maximumHeightErrorMeters": 0.0009371057639953051
+        }
+      },
+      "region": [
+        2.047334378734295,
+        0.6179375264383434,
+        2.0512923366557705,
+        0.623215512805777,
+        91,
+        508
+      ]
+    },
+    {
+      "cellId": "3_2_3",
+      "instanceCount": 228,
+      "demHeightRange": [
+        104.69019343112299,
+        421.59070026418345
+      ],
+      "inputHighLowHorizontalDifferenceMeters": 0.0,
+      "outputHighLowHorizontalDifferenceMeters": 0.0,
+      "outputCoordinateErrors": {
+        "low": {
+          "maximumHorizontalErrorMeters": 0.0020823301239265278,
+          "maximumHeightErrorMeters": 0.0013631684705615044
+        },
+        "high": {
+          "maximumHorizontalErrorMeters": 0.0020823301239265278,
+          "maximumHeightErrorMeters": 0.0013631684705615044
+        }
+      },
+      "region": [
+        2.047334378734295,
+        0.623215512805777,
+        2.0512923366557705,
+        0.6284934991732107,
+        99,
+        482
+      ]
+    },
+    {
+      "cellId": "3_3_2",
+      "instanceCount": 259,
+      "demHeightRange": [
+        128.0,
+        611.2769015817648
+      ],
+      "inputHighLowHorizontalDifferenceMeters": 0.0,
+      "outputHighLowHorizontalDifferenceMeters": 0.0,
+      "outputCoordinateErrors": {
+        "low": {
+          "maximumHorizontalErrorMeters": 0.0010129844804662878,
+          "maximumHeightErrorMeters": 0.0005280089722532466
+        },
+        "high": {
+          "maximumHorizontalErrorMeters": 0.0010129844804662878,
+          "maximumHeightErrorMeters": 0.0005280089722532466
+        }
+      },
+      "region": [
+        2.0512923366557705,
+        0.6179375264383434,
+        2.055250294577246,
+        0.623215512805777,
+        123,
+        672
+      ]
+    },
+    {
+      "cellId": "3_3_3",
+      "instanceCount": 236,
+      "demHeightRange": [
+        143.0,
+        697.3405057203963
+      ],
+      "inputHighLowHorizontalDifferenceMeters": 0.0,
+      "outputHighLowHorizontalDifferenceMeters": 0.0,
+      "outputCoordinateErrors": {
+        "low": {
+          "maximumHorizontalErrorMeters": 0.001986652747199539,
+          "maximumHeightErrorMeters": 0.0014546257043548394
+        },
+        "high": {
+          "maximumHorizontalErrorMeters": 0.001986652747199539,
+          "maximumHeightErrorMeters": 0.0014546257043548394
+        }
+      },
+      "region": [
+        2.0512923366557705,
+        0.623215512805777,
+        2.055250294577246,
+        0.6284934991732107,
+        138,
+        758
+      ]
+    },
+    {
+      "cellId": "3_2_4",
+      "instanceCount": 212,
+      "demHeightRange": [
+        128.0,
+        869.7545240547443
+      ],
+      "inputHighLowHorizontalDifferenceMeters": 0.0,
+      "outputHighLowHorizontalDifferenceMeters": 0.0,
+      "outputCoordinateErrors": {
+        "low": {
+          "maximumHorizontalErrorMeters": 0.0013215221199082735,
+          "maximumHeightErrorMeters": 0.0011021167738363147
+        },
+        "high": {
+          "maximumHorizontalErrorMeters": 0.0013215221199082735,
+          "maximumHeightErrorMeters": 0.0011021167738363147
+        }
+      },
+      "region": [
+        2.047334378734295,
+        0.6284934991732107,
+        2.0512923366557705,
+        0.6337714855406443,
+        123,
+        930
+      ]
+    },
+    {
+      "cellId": "3_2_5",
+      "instanceCount": 256,
+      "demHeightRange": [
+        138.17148286601514,
+        783.6413127460447
+      ],
+      "inputHighLowHorizontalDifferenceMeters": 0.0,
+      "outputHighLowHorizontalDifferenceMeters": 0.0,
+      "outputCoordinateErrors": {
+        "low": {
+          "maximumHorizontalErrorMeters": 0.001986096984286416,
+          "maximumHeightErrorMeters": 0.00121296930956305
+        },
+        "high": {
+          "maximumHorizontalErrorMeters": 0.001986096984286416,
+          "maximumHeightErrorMeters": 0.00121296930956305
+        }
+      },
+      "region": [
+        2.047334378734295,
+        0.6337714855406443,
+        2.0512923366557705,
+        0.6390494719080779,
+        133,
+        844
+      ]
+    },
+    {
+      "cellId": "3_3_4",
+      "instanceCount": 253,
+      "demHeightRange": [
+        162.0,
+        617.1037960992071
+      ],
+      "inputHighLowHorizontalDifferenceMeters": 0.0,
+      "outputHighLowHorizontalDifferenceMeters": 0.0,
+      "outputCoordinateErrors": {
+        "low": {
+          "maximumHorizontalErrorMeters": 0.0013266017819369286,
+          "maximumHeightErrorMeters": 0.001157756577043756
+        },
+        "high": {
+          "maximumHorizontalErrorMeters": 0.0013266017819369286,
+          "maximumHeightErrorMeters": 0.001157756577043756
+        }
+      },
+      "region": [
+        2.0512923366557705,
+        0.6284934991732107,
+        2.055250294577246,
+        0.6337714855406443,
+        157,
+        678
+      ]
+    },
+    {
+      "cellId": "3_3_5",
+      "instanceCount": 241,
+      "demHeightRange": [
+        184.54789206158648,
+        733.9003748948124
+      ],
+      "inputHighLowHorizontalDifferenceMeters": 0.0,
+      "outputHighLowHorizontalDifferenceMeters": 0.0,
+      "outputCoordinateErrors": {
+        "low": {
+          "maximumHorizontalErrorMeters": 0.0009730595036872266,
+          "maximumHeightErrorMeters": 0.0010750809705655229
+        },
+        "high": {
+          "maximumHorizontalErrorMeters": 0.0009730595036872266,
+          "maximumHeightErrorMeters": 0.0010750809705655229
+        }
+      },
+      "region": [
+        2.0512923366557705,
+        0.6337714855406443,
+        2.055250294577246,
+        0.6390494719080779,
+        179,
+        794
+      ]
+    },
+    {
+      "cellId": "3_2_6",
+      "instanceCount": 206,
+      "demHeightRange": [
+        10.0,
+        283.9091623524764
+      ],
+      "inputHighLowHorizontalDifferenceMeters": 0.0,
+      "outputHighLowHorizontalDifferenceMeters": 0.0,
+      "outputCoordinateErrors": {
+        "low": {
+          "maximumHorizontalErrorMeters": 0.0013029980234821419,
+          "maximumHeightErrorMeters": 0.0009991267361328937
+        },
+        "high": {
+          "maximumHorizontalErrorMeters": 0.0013029980234821419,
+          "maximumHeightErrorMeters": 0.0009991267361328937
+        }
+      },
+      "region": [
+        2.047334378734295,
+        0.6390494719080779,
+        2.0512923366557705,
+        0.6443274582755115,
+        5,
+        344
+      ]
+    },
+    {
+      "cellId": "3_2_7",
+      "instanceCount": 44,
+      "demHeightRange": [
+        6.609740251176845,
+        17.530876606161076
+      ],
+      "inputHighLowHorizontalDifferenceMeters": 0.0,
+      "outputHighLowHorizontalDifferenceMeters": 0.0,
+      "outputCoordinateErrors": {
+        "low": {
+          "maximumHorizontalErrorMeters": 0.0009510568645985391,
+          "maximumHeightErrorMeters": 0.0004474036893427069
+        },
+        "high": {
+          "maximumHorizontalErrorMeters": 0.0009510568645985391,
+          "maximumHeightErrorMeters": 0.0004474036893427069
+        }
+      },
+      "region": [
+        2.047334378734295,
+        0.6443274582755115,
+        2.0512923366557705,
+        0.6496054446429451,
+        1,
+        78
+      ]
+    },
+    {
+      "cellId": "3_3_6",
+      "instanceCount": 237,
+      "demHeightRange": [
+        6.658447679574921,
+        578.4301568933224
+      ],
+      "inputHighLowHorizontalDifferenceMeters": 0.0,
+      "outputHighLowHorizontalDifferenceMeters": 0.0,
+      "outputCoordinateErrors": {
+        "low": {
+          "maximumHorizontalErrorMeters": 0.0010131979056104625,
+          "maximumHeightErrorMeters": 0.0009358373064287662
+        },
+        "high": {
+          "maximumHorizontalErrorMeters": 0.0010131979056104625,
+          "maximumHeightErrorMeters": 0.0009358373064287662
+        }
+      },
+      "region": [
+        2.0512923366557705,
+        0.6390494719080779,
+        2.055250294577246,
+        0.6443274582755115,
+        1,
+        639
+      ]
+    },
+    {
+      "cellId": "3_3_7",
+      "instanceCount": 61,
+      "demHeightRange": [
+        1.2022964502544098,
+        15.000000000000002
+      ],
+      "inputHighLowHorizontalDifferenceMeters": 0.0,
+      "outputHighLowHorizontalDifferenceMeters": 0.0,
+      "outputCoordinateErrors": {
+        "low": {
+          "maximumHorizontalErrorMeters": 0.0006067052385275519,
+          "maximumHeightErrorMeters": 0.0006850934728093172
+        },
+        "high": {
+          "maximumHorizontalErrorMeters": 0.0006067052385275519,
+          "maximumHeightErrorMeters": 0.0006850934728093172
+        }
+      },
+      "region": [
+        2.0512923366557705,
+        0.6443274582755115,
+        2.055250294577246,
+        0.6496054446429451,
+        -4,
+        75
+      ]
+    },
+    {
+      "cellId": "3_4_0",
+      "instanceCount": 84,
+      "demHeightRange": [
+        112.06226250196414,
+        284.4457391562639
+      ],
+      "inputHighLowHorizontalDifferenceMeters": 0.0,
+      "outputHighLowHorizontalDifferenceMeters": 0.0,
+      "outputCoordinateErrors": {
+        "low": {
+          "maximumHorizontalErrorMeters": 0.0011384828335142302,
+          "maximumHeightErrorMeters": 0.0011644143123703543
+        },
+        "high": {
+          "maximumHorizontalErrorMeters": 0.0011384828335142302,
+          "maximumHeightErrorMeters": 0.0011644143123703543
+        }
+      },
+      "region": [
+        2.055250294577246,
+        0.6073815537034762,
+        2.0592082524987223,
+        0.6126595400709098,
+        107,
+        345
+      ]
+    },
+    {
+      "cellId": "3_4_1",
+      "instanceCount": 244,
+      "demHeightRange": [
+        100.0,
+        378.9033000780205
+      ],
+      "inputHighLowHorizontalDifferenceMeters": 0.0,
+      "outputHighLowHorizontalDifferenceMeters": 0.0,
+      "outputCoordinateErrors": {
+        "low": {
+          "maximumHorizontalErrorMeters": 0.0012256017028086114,
+          "maximumHeightErrorMeters": 0.0010201387885899749
+        },
+        "high": {
+          "maximumHorizontalErrorMeters": 0.0012256017028086114,
+          "maximumHeightErrorMeters": 0.0010201387885899749
+        }
+      },
+      "region": [
+        2.055250294577246,
+        0.6126595400709098,
+        2.0592082524987223,
+        0.6179375264383434,
+        95,
+        439
+      ]
+    },
+    {
+      "cellId": "3_5_0",
+      "instanceCount": 64,
+      "demHeightRange": [
+        65.96076027473133,
+        198.0081152070862
+      ],
+      "inputHighLowHorizontalDifferenceMeters": 0.0,
+      "outputHighLowHorizontalDifferenceMeters": 0.0,
+      "outputCoordinateErrors": {
+        "low": {
+          "maximumHorizontalErrorMeters": 0.0012637502006442073,
+          "maximumHeightErrorMeters": 0.00080095237160549
+        },
+        "high": {
+          "maximumHorizontalErrorMeters": 0.0012637502006442073,
+          "maximumHeightErrorMeters": 0.00080095237160549
+        }
+      },
+      "region": [
+        2.0592082524987223,
+        0.6073815537034762,
+        2.063166210420198,
+        0.6126595400709098,
+        60,
+        259
+      ]
+    },
+    {
+      "cellId": "3_5_1",
+      "instanceCount": 239,
+      "demHeightRange": [
+        77.0,
+        539.0318183840718
+      ],
+      "inputHighLowHorizontalDifferenceMeters": 0.0,
+      "outputHighLowHorizontalDifferenceMeters": 0.0,
+      "outputCoordinateErrors": {
+        "low": {
+          "maximumHorizontalErrorMeters": 0.000953918543190071,
+          "maximumHeightErrorMeters": 0.0009551011025763501
+        },
+        "high": {
+          "maximumHorizontalErrorMeters": 0.000953918543190071,
+          "maximumHeightErrorMeters": 0.0009551011025763501
+        }
+      },
+      "region": [
+        2.0592082524987223,
+        0.6126595400709098,
+        2.063166210420198,
+        0.6179375264383434,
+        72,
+        600
+      ]
+    },
+    {
+      "cellId": "3_4_2",
+      "instanceCount": 173,
+      "demHeightRange": [
+        113.71576162510246,
+        794.7789724018622
+      ],
+      "inputHighLowHorizontalDifferenceMeters": 0.0,
+      "outputHighLowHorizontalDifferenceMeters": 0.0,
+      "outputCoordinateErrors": {
+        "low": {
+          "maximumHorizontalErrorMeters": 0.001258309037144576,
+          "maximumHeightErrorMeters": 0.0007394636049866676
+        },
+        "high": {
+          "maximumHorizontalErrorMeters": 0.001258309037144576,
+          "maximumHeightErrorMeters": 0.0007394636049866676
+        }
+      },
+      "region": [
+        2.055250294577246,
+        0.6179375264383434,
+        2.0592082524987223,
+        0.623215512805777,
+        108,
+        855
+      ]
+    },
+    {
+      "cellId": "3_4_3",
+      "instanceCount": 224,
+      "demHeightRange": [
+        186.94888791425933,
+        631.1924614960411
+      ],
+      "inputHighLowHorizontalDifferenceMeters": 0.0,
+      "outputHighLowHorizontalDifferenceMeters": 0.0,
+      "outputCoordinateErrors": {
+        "low": {
+          "maximumHorizontalErrorMeters": 0.002086330685477793,
+          "maximumHeightErrorMeters": 0.0019248071803303901
+        },
+        "high": {
+          "maximumHorizontalErrorMeters": 0.002086330685477793,
+          "maximumHeightErrorMeters": 0.0019248071803303901
+        }
+      },
+      "region": [
+        2.055250294577246,
+        0.623215512805777,
+        2.0592082524987223,
+        0.6284934991732107,
+        181,
+        692
+      ]
+    },
+    {
+      "cellId": "3_5_2",
+      "instanceCount": 219,
+      "demHeightRange": [
+        123.0,
+        823.3712303371352
+      ],
+      "inputHighLowHorizontalDifferenceMeters": 0.0,
+      "outputHighLowHorizontalDifferenceMeters": 0.0,
+      "outputCoordinateErrors": {
+        "low": {
+          "maximumHorizontalErrorMeters": 0.001286836319637265,
+          "maximumHeightErrorMeters": 0.0007702721013629343
+        },
+        "high": {
+          "maximumHorizontalErrorMeters": 0.001286836319637265,
+          "maximumHeightErrorMeters": 0.0007702721013629343
+        }
+      },
+      "region": [
+        2.0592082524987223,
+        0.6179375264383434,
+        2.063166210420198,
+        0.623215512805777,
+        118,
+        884
+      ]
+    },
+    {
+      "cellId": "3_5_3",
+      "instanceCount": 234,
+      "demHeightRange": [
+        163.99999999999997,
+        616.7092847958108
+      ],
+      "inputHighLowHorizontalDifferenceMeters": 0.0,
+      "outputHighLowHorizontalDifferenceMeters": 0.0,
+      "outputCoordinateErrors": {
+        "low": {
+          "maximumHorizontalErrorMeters": 0.002106594277848717,
+          "maximumHeightErrorMeters": 0.0017405092003173195
+        },
+        "high": {
+          "maximumHorizontalErrorMeters": 0.002106594277848717,
+          "maximumHeightErrorMeters": 0.0017405092003173195
+        }
+      },
+      "region": [
+        2.0592082524987223,
+        0.623215512805777,
+        2.063166210420198,
+        0.6284934991732107,
+        158,
+        677
+      ]
+    },
+    {
+      "cellId": "3_4_4",
+      "instanceCount": 263,
+      "demHeightRange": [
+        207.23595894198235,
+        585.2870238130199
+      ],
+      "inputHighLowHorizontalDifferenceMeters": 0.0,
+      "outputHighLowHorizontalDifferenceMeters": 0.0,
+      "outputCoordinateErrors": {
+        "low": {
+          "maximumHorizontalErrorMeters": 0.0010711944063391753,
+          "maximumHeightErrorMeters": 0.0005988113698549569
+        },
+        "high": {
+          "maximumHorizontalErrorMeters": 0.0010711944063391753,
+          "maximumHeightErrorMeters": 0.0005988113698549569
+        }
+      },
+      "region": [
+        2.055250294577246,
+        0.6284934991732107,
+        2.0592082524987223,
+        0.6337714855406443,
+        202,
+        646
+      ]
+    },
+    {
+      "cellId": "3_4_5",
+      "instanceCount": 234,
+      "demHeightRange": [
+        96.40566616315358,
+        764.0699954493881
+      ],
+      "inputHighLowHorizontalDifferenceMeters": 0.0,
+      "outputHighLowHorizontalDifferenceMeters": 0.0,
+      "outputCoordinateErrors": {
+        "low": {
+          "maximumHorizontalErrorMeters": 0.0020426982014716466,
+          "maximumHeightErrorMeters": 0.0014982279935793485
+        },
+        "high": {
+          "maximumHorizontalErrorMeters": 0.0020426982014716466,
+          "maximumHeightErrorMeters": 0.0014982279935793485
+        }
+      },
+      "region": [
+        2.055250294577246,
+        0.6337714855406443,
+        2.0592082524987223,
+        0.6390494719080779,
+        91,
+        825
+      ]
+    },
+    {
+      "cellId": "3_5_4",
+      "instanceCount": 260,
+      "demHeightRange": [
+        262.0,
+        1042.1546287620956
+      ],
+      "inputHighLowHorizontalDifferenceMeters": 0.0,
+      "outputHighLowHorizontalDifferenceMeters": 0.0,
+      "outputCoordinateErrors": {
+        "low": {
+          "maximumHorizontalErrorMeters": 0.0009091128724860268,
+          "maximumHeightErrorMeters": 0.0006635859608650208
+        },
+        "high": {
+          "maximumHorizontalErrorMeters": 0.0009091128724860268,
+          "maximumHeightErrorMeters": 0.0006635859608650208
+        }
+      },
+      "region": [
+        2.0592082524987223,
+        0.6284934991732107,
+        2.063166210420198,
+        0.6337714855406443,
+        257,
+        1103
+      ]
+    },
+    {
+      "cellId": "3_5_5",
+      "instanceCount": 215,
+      "demHeightRange": [
+        151.5501486318173,
+        792.7013488543089
+      ],
+      "inputHighLowHorizontalDifferenceMeters": 0.0,
+      "outputHighLowHorizontalDifferenceMeters": 0.0,
+      "outputCoordinateErrors": {
+        "low": {
+          "maximumHorizontalErrorMeters": 0.002512427530837941,
+          "maximumHeightErrorMeters": 0.0017314134399271097
+        },
+        "high": {
+          "maximumHorizontalErrorMeters": 0.002512427530837941,
+          "maximumHeightErrorMeters": 0.0017314134399271097
+        }
+      },
+      "region": [
+        2.0592082524987223,
+        0.6337714855406443,
+        2.063166210420198,
+        0.6390494719080779,
+        146,
+        853
+      ]
+    },
+    {
+      "cellId": "3_4_6",
+      "instanceCount": 220,
+      "demHeightRange": [
+        14.2675485155778,
+        304.361767890634
+      ],
+      "inputHighLowHorizontalDifferenceMeters": 0.0,
+      "outputHighLowHorizontalDifferenceMeters": 0.0,
+      "outputCoordinateErrors": {
+        "low": {
+          "maximumHorizontalErrorMeters": 0.0011927497086689192,
+          "maximumHeightErrorMeters": 0.0010939719047939889
+        },
+        "high": {
+          "maximumHorizontalErrorMeters": 0.0011927497086689192,
+          "maximumHeightErrorMeters": 0.0010939719047939889
+        }
+      },
+      "region": [
+        2.055250294577246,
+        0.6390494719080779,
+        2.0592082524987223,
+        0.6443274582755115,
+        9,
+        365
+      ]
+    },
+    {
+      "cellId": "3_4_7",
+      "instanceCount": 52,
+      "demHeightRange": [
+        4.07176630600505,
+        22.277859948360856
+      ],
+      "inputHighLowHorizontalDifferenceMeters": 0.0,
+      "outputHighLowHorizontalDifferenceMeters": 0.0,
+      "outputCoordinateErrors": {
+        "low": {
+          "maximumHorizontalErrorMeters": 0.00042935795370005155,
+          "maximumHeightErrorMeters": 0.000312456744723022
+        },
+        "high": {
+          "maximumHorizontalErrorMeters": 0.00042935795370005155,
+          "maximumHeightErrorMeters": 0.000312456744723022
+        }
+      },
+      "region": [
+        2.055250294577246,
+        0.6443274582755115,
+        2.0592082524987223,
+        0.6496054446429451,
+        -1,
+        83
+      ]
+    },
+    {
+      "cellId": "3_5_6",
+      "instanceCount": 242,
+      "demHeightRange": [
+        17.90092968009776,
+        392.3173841275675
+      ],
+      "inputHighLowHorizontalDifferenceMeters": 0.0,
+      "outputHighLowHorizontalDifferenceMeters": 0.0,
+      "outputCoordinateErrors": {
+        "low": {
+          "maximumHorizontalErrorMeters": 0.0020435781112661294,
+          "maximumHeightErrorMeters": 0.0012172403694421519
+        },
+        "high": {
+          "maximumHorizontalErrorMeters": 0.0020435781112661294,
+          "maximumHeightErrorMeters": 0.0012172403694421519
+        }
+      },
+      "region": [
+        2.0592082524987223,
+        0.6390494719080779,
+        2.063166210420198,
+        0.6443274582755115,
+        12,
+        453
+      ]
+    },
+    {
+      "cellId": "3_5_7",
+      "instanceCount": 66,
+      "demHeightRange": [
+        5.0,
+        26.11570366192784
+      ],
+      "inputHighLowHorizontalDifferenceMeters": 0.0,
+      "outputHighLowHorizontalDifferenceMeters": 0.0,
+      "outputCoordinateErrors": {
+        "low": {
+          "maximumHorizontalErrorMeters": 0.001025640387766552,
+          "maximumHeightErrorMeters": 0.0010681465223942865
+        },
+        "high": {
+          "maximumHorizontalErrorMeters": 0.001025640387766552,
+          "maximumHeightErrorMeters": 0.0010681465223942865
+        }
+      },
+      "region": [
+        2.0592082524987223,
+        0.6443274582755115,
+        2.063166210420198,
+        0.6496054446429451,
+        0,
+        87
+      ]
+    },
+    {
+      "cellId": "3_6_0",
+      "instanceCount": 86,
+      "demHeightRange": [
+        55.0,
+        77.24012428643886
+      ],
+      "inputHighLowHorizontalDifferenceMeters": 0.0,
+      "outputHighLowHorizontalDifferenceMeters": 0.0,
+      "outputCoordinateErrors": {
+        "low": {
+          "maximumHorizontalErrorMeters": 0.0012290493217404926,
+          "maximumHeightErrorMeters": 0.0010506237559084752
+        },
+        "high": {
+          "maximumHorizontalErrorMeters": 0.0012290493217404926,
+          "maximumHeightErrorMeters": 0.0010506237559084752
+        }
+      },
+      "region": [
+        2.063166210420198,
+        0.6073815537034762,
+        2.0671241683416737,
+        0.6126595400709098,
+        50,
+        138
+      ]
+    },
+    {
+      "cellId": "3_6_1",
+      "instanceCount": 184,
+      "demHeightRange": [
+        64.0,
+        176.7894281498884
+      ],
+      "inputHighLowHorizontalDifferenceMeters": 0.0,
+      "outputHighLowHorizontalDifferenceMeters": 0.0,
+      "outputCoordinateErrors": {
+        "low": {
+          "maximumHorizontalErrorMeters": 0.0010832208603552746,
+          "maximumHeightErrorMeters": 0.0009756040105912689
+        },
+        "high": {
+          "maximumHorizontalErrorMeters": 0.0010832208603552746,
+          "maximumHeightErrorMeters": 0.0009756040105912689
+        }
+      },
+      "region": [
+        2.063166210420198,
+        0.6126595400709098,
+        2.0671241683416737,
+        0.6179375264383434,
+        59,
+        237
+      ]
+    },
+    {
+      "cellId": "3_7_0",
+      "instanceCount": 10,
+      "demHeightRange": [
+        57.533846658607445,
+        65.0
+      ],
+      "inputHighLowHorizontalDifferenceMeters": 0.0,
+      "outputHighLowHorizontalDifferenceMeters": 0.0,
+      "outputCoordinateErrors": {
+        "low": {
+          "maximumHorizontalErrorMeters": 0.0010693955359989732,
+          "maximumHeightErrorMeters": 0.0011772633990858594
+        },
+        "high": {
+          "maximumHorizontalErrorMeters": 0.0010693955359989732,
+          "maximumHeightErrorMeters": 0.0011772633990858594
+        }
+      },
+      "region": [
+        2.0671241683416737,
+        0.6073815537034762,
+        2.0710821262631494,
+        0.6126595400709098,
+        52,
+        125
+      ]
+    },
+    {
+      "cellId": "3_7_1",
+      "instanceCount": 70,
+      "demHeightRange": [
+        63.78421646420611,
+        105.08892567500517
+      ],
+      "inputHighLowHorizontalDifferenceMeters": 0.0,
+      "outputHighLowHorizontalDifferenceMeters": 0.0,
+      "outputCoordinateErrors": {
+        "low": {
+          "maximumHorizontalErrorMeters": 0.0008832540991809382,
+          "maximumHeightErrorMeters": 0.0006311438373813871
+        },
+        "high": {
+          "maximumHorizontalErrorMeters": 0.0008832540991809382,
+          "maximumHeightErrorMeters": 0.0006311438373813871
+        }
+      },
+      "region": [
+        2.0671241683416737,
+        0.6126595400709098,
+        2.0710821262631494,
+        0.6179375264383434,
+        58,
+        166
+      ]
+    },
+    {
+      "cellId": "3_6_2",
+      "instanceCount": 227,
+      "demHeightRange": [
+        99.0,
+        608.2781417306323
+      ],
+      "inputHighLowHorizontalDifferenceMeters": 0.0,
+      "outputHighLowHorizontalDifferenceMeters": 0.0,
+      "outputCoordinateErrors": {
+        "low": {
+          "maximumHorizontalErrorMeters": 0.0010422039328534891,
+          "maximumHeightErrorMeters": 0.0006972089905161738
+        },
+        "high": {
+          "maximumHorizontalErrorMeters": 0.0010422039328534891,
+          "maximumHeightErrorMeters": 0.0006972089905161738
+        }
+      },
+      "region": [
+        2.063166210420198,
+        0.6179375264383434,
+        2.0671241683416737,
+        0.623215512805777,
+        94,
+        669
+      ]
+    },
+    {
+      "cellId": "3_6_3",
+      "instanceCount": 234,
+      "demHeightRange": [
+        179.15709786351002,
+        542.9817646938495
+      ],
+      "inputHighLowHorizontalDifferenceMeters": 0.0,
+      "outputHighLowHorizontalDifferenceMeters": 0.0,
+      "outputCoordinateErrors": {
+        "low": {
+          "maximumHorizontalErrorMeters": 0.0026628672341670575,
+          "maximumHeightErrorMeters": 0.0017006404814310372
+        },
+        "high": {
+          "maximumHorizontalErrorMeters": 0.0026628672341670575,
+          "maximumHeightErrorMeters": 0.0017006404814310372
+        }
+      },
+      "region": [
+        2.063166210420198,
+        0.623215512805777,
+        2.0671241683416737,
+        0.6284934991732107,
+        174,
+        603
+      ]
+    },
+    {
+      "cellId": "3_7_2",
+      "instanceCount": 67,
+      "demHeightRange": [
+        93.11775775905699,
+        290.922784090566
+      ],
+      "inputHighLowHorizontalDifferenceMeters": 0.0,
+      "outputHighLowHorizontalDifferenceMeters": 0.0,
+      "outputCoordinateErrors": {
+        "low": {
+          "maximumHorizontalErrorMeters": 0.0006372681904252575,
+          "maximumHeightErrorMeters": 0.00041744153350009583
+        },
+        "high": {
+          "maximumHorizontalErrorMeters": 0.0006372681904252575,
+          "maximumHeightErrorMeters": 0.00041744153350009583
+        }
+      },
+      "region": [
+        2.0671241683416737,
+        0.6179375264383434,
+        2.0710821262631494,
+        0.623215512805777,
+        88,
+        351
+      ]
+    },
+    {
+      "cellId": "3_7_3",
+      "instanceCount": 57,
+      "demHeightRange": [
+        167.53428275519906,
+        373.25402476133604
+      ],
+      "inputHighLowHorizontalDifferenceMeters": 0.0,
+      "outputHighLowHorizontalDifferenceMeters": 0.0,
+      "outputCoordinateErrors": {
+        "low": {
+          "maximumHorizontalErrorMeters": 0.0019367034379015062,
+          "maximumHeightErrorMeters": 0.00191300364883773
+        },
+        "high": {
+          "maximumHorizontalErrorMeters": 0.0019367034379015062,
+          "maximumHeightErrorMeters": 0.00191300364883773
+        }
+      },
+      "region": [
+        2.0671241683416737,
+        0.623215512805777,
+        2.0710821262631494,
+        0.6284934991732107,
+        162,
+        434
+      ]
+    },
+    {
+      "cellId": "3_6_4",
+      "instanceCount": 242,
+      "demHeightRange": [
+        191.017771892094,
+        632.9929176349164
+      ],
+      "inputHighLowHorizontalDifferenceMeters": 0.0,
+      "outputHighLowHorizontalDifferenceMeters": 0.0,
+      "outputCoordinateErrors": {
+        "low": {
+          "maximumHorizontalErrorMeters": 0.000948017096053332,
+          "maximumHeightErrorMeters": 0.0006639403218855477
+        },
+        "high": {
+          "maximumHorizontalErrorMeters": 0.000948017096053332,
+          "maximumHeightErrorMeters": 0.0006639403218855477
+        }
+      },
+      "region": [
+        2.063166210420198,
+        0.6284934991732107,
+        2.0671241683416737,
+        0.6337714855406443,
+        186,
+        693
+      ]
+    },
+    {
+      "cellId": "3_6_5",
+      "instanceCount": 228,
+      "demHeightRange": [
+        171.3914035092762,
+        860.1879592014922
+      ],
+      "inputHighLowHorizontalDifferenceMeters": 0.0,
+      "outputHighLowHorizontalDifferenceMeters": 0.0,
+      "outputCoordinateErrors": {
+        "low": {
+          "maximumHorizontalErrorMeters": 0.0017589285603076485,
+          "maximumHeightErrorMeters": 0.001377092699840432
+        },
+        "high": {
+          "maximumHorizontalErrorMeters": 0.0017589285603076485,
+          "maximumHeightErrorMeters": 0.001377092699840432
+        }
+      },
+      "region": [
+        2.063166210420198,
+        0.6337714855406443,
+        2.0671241683416737,
+        0.6390494719080779,
+        166,
+        921
+      ]
+    },
+    {
+      "cellId": "3_7_4",
+      "instanceCount": 77,
+      "demHeightRange": [
+        209.98466835339227,
+        585.998482397059
+      ],
+      "inputHighLowHorizontalDifferenceMeters": 0.0,
+      "outputHighLowHorizontalDifferenceMeters": 0.0,
+      "outputCoordinateErrors": {
+        "low": {
+          "maximumHorizontalErrorMeters": 0.0009405714320900232,
+          "maximumHeightErrorMeters": 0.0006614606049879512
+        },
+        "high": {
+          "maximumHorizontalErrorMeters": 0.0009405714320900232,
+          "maximumHeightErrorMeters": 0.0006614606049879512
+        }
+      },
+      "region": [
+        2.0671241683416737,
+        0.6284934991732107,
+        2.0710821262631494,
+        0.6337714855406443,
+        204,
+        646
+      ]
+    },
+    {
+      "cellId": "3_7_5",
+      "instanceCount": 65,
+      "demHeightRange": [
+        111.0,
+        488.9192167665678
+      ],
+      "inputHighLowHorizontalDifferenceMeters": 0.0,
+      "outputHighLowHorizontalDifferenceMeters": 0.0,
+      "outputCoordinateErrors": {
+        "low": {
+          "maximumHorizontalErrorMeters": 0.0012635854830122695,
+          "maximumHeightErrorMeters": 0.0015682858174841385
+        },
+        "high": {
+          "maximumHorizontalErrorMeters": 0.0012635854830122695,
+          "maximumHeightErrorMeters": 0.0015682858174841385
+        }
+      },
+      "region": [
+        2.0671241683416737,
+        0.6337714855406443,
+        2.0710821262631494,
+        0.6390494719080779,
+        106,
+        549
+      ]
+    },
+    {
+      "cellId": "3_6_6",
+      "instanceCount": 270,
+      "demHeightRange": [
+        26.0,
+        449.8843770314161
+      ],
+      "inputHighLowHorizontalDifferenceMeters": 0.0,
+      "outputHighLowHorizontalDifferenceMeters": 0.0,
+      "outputCoordinateErrors": {
+        "low": {
+          "maximumHorizontalErrorMeters": 0.0010093716487539592,
+          "maximumHeightErrorMeters": 0.0011641951277852058
+        },
+        "high": {
+          "maximumHorizontalErrorMeters": 0.0010093716487539592,
+          "maximumHeightErrorMeters": 0.0011641951277852058
+        }
+      },
+      "region": [
+        2.063166210420198,
+        0.6390494719080779,
+        2.0671241683416737,
+        0.6443274582755115,
+        21,
+        510
+      ]
+    },
+    {
+      "cellId": "3_6_7",
+      "instanceCount": 59,
+      "demHeightRange": [
+        9.335142885992445,
+        33.0
+      ],
+      "inputHighLowHorizontalDifferenceMeters": 0.0,
+      "outputHighLowHorizontalDifferenceMeters": 0.0,
+      "outputCoordinateErrors": {
+        "low": {
+          "maximumHorizontalErrorMeters": 0.0012812747230683383,
+          "maximumHeightErrorMeters": 0.0011411212618170907
+        },
+        "high": {
+          "maximumHorizontalErrorMeters": 0.0012812747230683383,
+          "maximumHeightErrorMeters": 0.0011411212618170907
+        }
+      },
+      "region": [
+        2.063166210420198,
+        0.6443274582755115,
+        2.0671241683416737,
+        0.6496054446429451,
+        4,
+        93
+      ]
+    },
+    {
+      "cellId": "3_7_6",
+      "instanceCount": 70,
+      "demHeightRange": [
+        24.784509838918147,
+        335.8482691110261
+      ],
+      "inputHighLowHorizontalDifferenceMeters": 0.0,
+      "outputHighLowHorizontalDifferenceMeters": 0.0,
+      "outputCoordinateErrors": {
+        "low": {
+          "maximumHorizontalErrorMeters": 0.0010621455522638195,
+          "maximumHeightErrorMeters": 0.0010840737959370017
+        },
+        "high": {
+          "maximumHorizontalErrorMeters": 0.0010621455522638195,
+          "maximumHeightErrorMeters": 0.0010840737959370017
+        }
+      },
+      "region": [
+        2.0671241683416737,
+        0.6390494719080779,
+        2.0710821262631494,
+        0.6443274582755115,
+        19,
+        396
+      ]
+    },
+    {
+      "cellId": "3_7_7",
+      "instanceCount": 18,
+      "demHeightRange": [
+        11.0,
+        24.0
+      ],
+      "inputHighLowHorizontalDifferenceMeters": 0.0,
+      "outputHighLowHorizontalDifferenceMeters": 0.0,
+      "outputCoordinateErrors": {
+        "low": {
+          "maximumHorizontalErrorMeters": 0.0011620392638778704,
+          "maximumHeightErrorMeters": 0.0010631242766976357
+        },
+        "high": {
+          "maximumHorizontalErrorMeters": 0.0011620392638778704,
+          "maximumHeightErrorMeters": 0.0010631242766976357
+        }
+      },
+      "region": [
+        2.0671241683416737,
+        0.6443274582755115,
+        2.0710821262631494,
+        0.6496054446429451,
+        6,
+        84
+      ]
+    }
+  ]
+}

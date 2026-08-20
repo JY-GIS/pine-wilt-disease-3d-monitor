@@ -1,197 +1,464 @@
-# 树木 3D Tiles 数据处理说明
+# 病树 GPU Instancing、空间 LOD 与 DEM 高程处理
 
-本目录用于松材线虫病三维监测系统的大规模病树模型加载实验。传统 Cesium Entity 方案在万级树木模型下会产生大量 Entity 与 Model 对象，增加 CPU 管理开销并降低帧率。
+本文是 `data-processing` 的主操作说明，供开发人员、学习者和接手项目的 AI 使用。
+执行任何数据脚本前，请先阅读“安全约束”和“常见误区”。
 
-当前实验页改用 Cesium 3D Tiles 加载预生成的树木瓦片，并在需要时对实例进行拾取。Low LOD 瓦片、关闭阴影和动态屏幕空间误差共同构成当前性能基线：
+## 1. 当前完成状态
 
-- Cesium Entity 树木模型：约 8 FPS
-- 3D Tiles 树木瓦片：约 28 FPS
+当前已经完成：
 
-> 当前仓库中的瓦片内容是 `.glb`、`tileset.json` 与 `.subtree` 文件；`generate_i3dm.py` 仅用于验证 `py3dtiles` 依赖是否可导入，并不会生成 i3dm 文件。
+- 10,205 棵树使用 3D Tiles 1.1 与 GPU Instancing 加载；
+- 数据切分为64个空间小块；
+- 1千米内显示High，1～8千米显示Low，远处显示聚合树；
+- GPU Instance可以被 `Cesium3DTileFeature` 单独Picking；
+- 山东GeoTIFF DEM已为10,205棵树补充地面高程；
+- 原始无高程基线和DEM版本分别保存，没有互相覆盖。
 
-## 一、目录结构
+当前实测性能基线：
+
+```text
+约10,000棵Low
+
+Entity/旧方案：约8 FPS
+3D Tiles + GPU Instancing：约23 FPS
+```
+
+FPS与电脑、相机、窗口大小和场景有关。后续测试必须保持相同条件，不能通过修改测试
+场景来人为提高数值。
+
+## 2. 最重要的目录
 
 ```text
 data-processing/
 ├── README.md
+├── requirements-dem.txt
+├── split_tree_tiles_spatial_lod.mjs
+├── test_dem_height_cell.py
+├── apply_dem_height_spatial_tiles.py
+├── DEM_263_TREE_TEST.md
+├── DEM_10205_TREE_TEST.md
 ├── dem/
-│   └── sample_dem.py                   # 查看 DEM 坐标系、范围、波段和 NoData
+│   ├── sample_dem.py
+│   └── .venv/                         # 本机Python环境，不应提交
 ├── tiles/
-│   ├── generate_data/
-│   │   ├── generate_data.py            # 生成随机坐标 JSON（instances-before.json）
-│   │   ├── generate_sql.py             # 生成 10,000 条 INSERT SQL（tree_instances.sql）
-│   │   ├── generate_i3dm.py            # 验证 py3dtiles 是否可用
-│   │   ├── instances-before.json        # generate_data.py 的输出
-│   │   ├── instances.json               # 当前保留的实例数据
-│   │   └── tree_instances.sql           # generate_sql.py 的输出
-│   ├── model/                           # 高精度 GLB：绿树、黄树、枯树
-│   └── tree-models-lod/
-│       ├── low/                         # Low LOD GLB：绿树、黄树、枯树
-│       ├── source/                      # 源 GLB
-│       └── blender/                     # Blender 工程文件
-├── tree-tiles-output/                  # 一套普通树木瓦片导出结果
-└── tree-tiles-lod-output/              # high、medium、low 三套 LOD 瓦片结果
-
-../database/test_i3dm.sql               # tree_instances 表和 3D Tiles 数据视图
+│   ├── model/                         # High模型
+│   ├── tree-models-lod/low/           # Low模型
+│   └── generate_data/                 # 旧测试数据脚本
+└── tree-tiles-lod-output/
+    ├── high/                          # 原始High导出结果
+    ├── low/                           # 原始Low导出结果
+    ├── spatial/                       # 10,205棵无DEM高程稳定基线
+    ├── spatial-dem-test/              # 263棵DEM试验结果
+    └── spatial-dem/                   # 10,205棵DEM正式试验结果
 ```
 
-模型文件名如下：
+DEM源文件默认位于：
 
 ```text
-tiles/model/pine-green.glb
-tiles/model/pine-yellow.glb
-tiles/model/pine-dry.glb
-
-tiles/tree-models-lod/low/pine-green-low.glb
-tiles/tree-models-lod/low/pine-yellow-low.glb
-tiles/tree-models-lod/low/pine-dry-low.glb
+downloads/DEM/shandong-dem-12.5.tif
 ```
 
-## 二、当前数据流程
+它当前是 `EPSG:32650`，像元约12.5米，NoData为 `-32768`。
+
+## 3. 三套空间数据的区别
+
+| 目录 | 数量 | 高程 | 用途 |
+|---|---:|---|---|
+| `spatial` | 10,205 | 原始高度约0 | 性能和位置基线，禁止覆盖 |
+| `spatial-dem-test` | 263 | DEM高度 | 小范围算法与人工贴地验证 |
+| `spatial-dem` | 10,205 | DEM高度 | 当前全量DEM测试数据 |
+
+前端实验页当前加载：
 
 ```text
-树木 GLB 模型
-        ↓
-生成随机实例 SQL（generate_sql.py）
-        ↓
-PostGIS tree_instances 表
-        ↓
-tree_instances_3dtiles / tree_instances_3dtiles_low 视图
-        ↓
-3D Tiles 导出结果（本仓库已保留）
-        ↓
-tileset.json
-        ↓
-Cesium.Cesium3DTileset 加载
+tree-tiles-lod-output/spatial-dem
 ```
 
-仓库目前没有保存从 PostGIS 视图到瓦片目录的自动化导出脚本；如需重新导出，请使用原有导出工具，并确认导出目录完整。
+配置位置：
 
-## 三、生成测试实例
+```text
+frontend/src/views/DemoTestView.vue
+```
 
-进入数据生成目录：
+对应常量：
+
+```js
+const SPATIAL_MANIFEST_URI = '/tree-tiles/spatial-dem/manifest.json'
+const SPATIAL_TILESET_BASE_URI = '/tree-tiles/spatial-dem'
+```
+
+如需回到无高程基线，只把这两个路径改回 `/tree-tiles/spatial`。不要删除或覆盖任何
+数据目录。
+
+## 4. 数据技术结构
+
+树木瓦片使用：
+
+```text
+3D Tiles 1.1
++ GLB
++ EXT_mesh_gpu_instancing
++ EXT_instance_features
++ EXT_structural_metadata
+```
+
+这不是传统 `.i3dm` 文件。每个GLB用少量模型几何和大量实例变换绘制树木。
+
+当前Metadata只有：
+
+```text
+id
+disease_level
+```
+
+当前测试数据的 `id` 为1～10,205且全局唯一，但还不是正式数据库 `tree_id`。Feature ID
+只在一个Property Table内局部有效，不能当作业务主键。
+
+## 5. 安全约束
+
+1. `tree-tiles-lod-output/spatial` 是已确认的性能基线，不允许覆盖。
+2. DEM输出只能写入 `spatial-dem-test` 或 `spatial-dem`。
+3. 不得把10,205棵树重新创建为10,205个Entity。
+4. 不得把 `disease_level` 再次作为High/Low模型选择条件。
+5. High/Low只表示几何精度，实例顺序、Feature ID和位置必须一致。
+6. 不要修改模型几何来“修复”DEM高程；高程只应修改实例 `TRANSLATION`。
+7. 未确认输入、输出目录前，不要运行空间切分脚本。
+
+## 6. 安装DEM处理环境
+
+建议使用Python 3.11或更高版本。在项目根目录执行：
 
 ```powershell
-cd data-processing/tiles/generate_data
+python -m venv data-processing/dem/.venv
+.\data-processing\dem\.venv\Scripts\python.exe -m pip install --upgrade pip
+.\data-processing\dem\.venv\Scripts\python.exe -m pip install `
+  -r .\data-processing\requirements-dem.txt
 ```
 
-### 生成随机坐标 JSON
+确认依赖：
 
 ```powershell
-python generate_data.py
+.\data-processing\dem\.venv\Scripts\python.exe -c `
+  "import rasterio, pyproj, numpy; print(rasterio.__version__, pyproj.__version__, numpy.__version__)"
 ```
 
-生成 `instances-before.json`。每条记录的实际字段为：
+## 7. 查看DEM基本信息
 
-```json
-{
-  "id": 0,
-  "longitude": 117.5,
-  "latitude": 36.2,
-  "height": 0,
-  "scale": 15
-}
-```
-
-随机范围为经度 `117.0 ~ 118.5`、纬度 `35.0 ~ 37.0`。
-
-### 生成 PostGIS 导入 SQL
+可以先运行：
 
 ```powershell
-python generate_sql.py
+.\data-processing\dem\.venv\Scripts\python.exe `
+  .\data-processing\dem\sample_dem.py
 ```
 
-生成 `tree_instances.sql`，内含 10,000 条 `INSERT INTO tree_instances` 语句。实际字段为 `geom`、`disease_level`、`scale` 和 `model`；病害等级与模型映射为：
+需要确认：
 
-| 病害等级 | 模型 |
-| --- | --- |
-| 1、2 | `pine-green.glb` |
-| 3、4 | `pine-yellow.glb` |
-| 5 | `pine-dry.glb` |
+- 文件能正常打开；
+- CRS存在；
+- 病树经纬度位于DEM覆盖范围内；
+- NoData设置正确；
+- 高程最大值和最小值符合常识。
 
-`generate_data.py` 与 `generate_sql.py` 都独立随机生成数据；后者不会读取 `instances-before.json`。
+GeoServer WMS只能显示DEM颜色图片，不能为Cesium提供真正的三维地形，也不能替代
+本地GeoTIFF高程采样。
 
-### 验证 py3dtiles 依赖
+## 8. 单空间块263棵试验
+
+默认测试空间块是 `3_4_4`，包含263棵树：
 
 ```powershell
-pip install py3dtiles
-python generate_i3dm.py
+.\data-processing\dem\.venv\Scripts\python.exe `
+  .\data-processing\test_dem_height_cell.py `
+  --cell-id 3_4_4
 ```
 
-若输出 `py3dtiles正常`，表示该 Python 包可以导入。
+默认输入：
 
-## 四、准备 PostGIS 数据
+```text
+tree-tiles-lod-output/spatial
+```
 
-先在项目根目录执行 `database/test_i3dm.sql`，再导入生成的实例 SQL：
+默认输出：
+
+```text
+tree-tiles-lod-output/spatial-dem-test
+```
+
+该脚本适合验证一个小区域，不用于全量生产。详细过程和结果见：
+
+```text
+DEM_263_TREE_TEST.md
+```
+
+## 9. 全量10,205棵DEM处理
+
+运行：
 
 ```powershell
-psql -U postgres -d songcai -f database/test_i3dm.sql
-psql -U postgres -d songcai -f data-processing/tiles/generate_data/tree_instances.sql
+.\data-processing\dem\.venv\Scripts\python.exe `
+  .\data-processing\apply_dem_height_spatial_tiles.py
 ```
 
-将 `postgres` 和 `songcai` 改为实际的用户名和数据库名。
+也可以明确指定路径：
 
-注意：`database/test_i3dm.sql` 在创建 `tree_instances` 后紧接着包含 `drop table tree_instances;`。首次初始化前，必须先删除或注释这一句，否则新建表会立即被删除，后续视图创建也会失败。
+```powershell
+.\data-processing\dem\.venv\Scripts\python.exe `
+  .\data-processing\apply_dem_height_spatial_tiles.py `
+  --source-root .\data-processing\tree-tiles-lod-output\spatial `
+  --output-root .\data-processing\tree-tiles-lod-output\spatial-dem `
+  --dem .\downloads\DEM\shandong-dem-12.5.tif
+```
 
-该 SQL 会创建两个视图：
+脚本分为两个阶段。
 
-- `tree_instances_3dtiles`：引用 `tiles/model/` 下的高精度模型。
-- `tree_instances_3dtiles_low`：将模型映射到 `tiles/tree-models-lod/low/` 下的 Low LOD 模型。
+### 阶段一：只读预检
 
-模型路径目前使用 `D:/pine-wilt-disease-3d-monitor/...` 绝对路径；项目换目录或换电脑时，需要更新 SQL 中的路径。
+对全部64块检查：
 
-## 五、预览已有的 Low LOD 瓦片
+- Low/High实例数量；
+- 实例顺序；
+- Feature ID；
+- Metadata；
+- ID全局唯一性；
+- DEM是否有有效像元。
 
-当前前端实验页只加载 `tree-tiles-lod-output/low/tileset.json`，不自动切换到 high 或 medium 瓦片。
+任何一点失败，脚本都会在写GLB之前停止。
 
-在第一个终端中启动静态文件服务：
+### 阶段二：生成和反向验证
+
+全部预检通过后：
+
+- 把DEM高度写入Low和High实例 `TRANSLATION`；
+- 更新accessor `min/max`；
+- 更新每个区域的高程包围体；
+- 重新读取输出GLB验证经纬度和高度；
+- 生成manifest、逐树CSV和汇总报告。
+
+输出：
+
+```text
+spatial-dem/
+├── manifest.json
+├── dem-height-report.json
+├── dem-height-samples.csv
+├── validation-low.json
+├── validation-high.json
+├── low/
+│   ├── tileset.json
+│   ├── regions/                       # 64个JSON
+│   └── content/                       # 64个GLB
+└── high/
+    ├── tileset.json
+    ├── regions/                       # 64个JSON
+    └── content/                       # 64个GLB
+```
+
+详细实测结果见：
+
+```text
+DEM_10205_TREE_TEST.md
+```
+
+## 10. DEM高程写入原理
+
+每棵树按以下步骤处理：
+
+```text
+实例局部TRANSLATION
+        ↓ 加上GLB节点原点
+glTF Y-up世界坐标
+        ↓ 轴向转换
+ECEF地心坐标
+        ↓ EPSG:4978 → EPSG:4326/4979
+经度、纬度、原高度
+        ↓ EPSG:4326 → DEM CRS
+DEM平面坐标
+        ↓ 周围2×2像元双线性插值
+DEM地面高程
+        ↓ 经度、纬度、DEM高度重新转ECEF
+新的实例TRANSLATION
+```
+
+脚本不会修改：
+
+- 模型顶点和三角形；
+- 实例旋转和缩放；
+- Feature ID；
+- `id`、`disease_level`；
+- GPU Instancing扩展结构。
+
+因此增加DEM高程不会把GPU Instancing退回Entity方案，也不会增加每棵树的独立Draw
+Call。
+
+## 11. 当前全量验证结果
+
+```text
+空间块：64
+实例：10,205
+DEM有效采样：10,205/10,205
+NoData：0
+id：1～10,205，无重复、无缺号
+DEM高程：约1.202～1074.222米
+High/Low最大水平差：0米
+最大写入高程误差：约0.0019米
+```
+
+3D Tiles Validator：
+
+| 数据 | Errors | Warnings | Infos |
+|---|---:|---:|---:|
+| Low | 0 | 0 | 64 |
+| High | 0 | 0 | 64 |
+
+Info是因为旧版校验器不支持GPU Instancing和结构化Metadata扩展，不是本次处理错误。
+
+## 12. 启动和查看
+
+终端一：启动3D Tiles静态服务。
 
 ```powershell
 cd data-processing/tree-tiles-lod-output
 python -m http.server 8000
 ```
 
-在第二个终端启动前端：
+终端二：启动前端。
 
 ```powershell
 cd frontend
-pnpm install
-pnpm dev
+npm install
+npm run dev
 ```
 
-访问前端开发服务器的 `/#/demo-test`。`frontend/vite.config.js` 会将：
+打开：
 
 ```text
-/tree-tiles/low/tileset.json
+http://localhost:5173/#/demo-test
 ```
 
-代理到：
+Vite代理关系：
 
 ```text
-http://localhost:8000/low/tileset.json
+/tree-tiles/spatial-dem/...
+        ↓
+http://localhost:8000/spatial-dem/...
 ```
 
-页面启用 FPS 显示；单击树木后，可在浏览器控制台查看被拾取要素的属性。
-
-## 六、查看 DEM 元数据（可选）
-
-在 `dem/sample_dem.py` 中修改 `dem_path` 为本机 DEM 文件路径，然后执行：
-
-```powershell
-pip install rasterio
-python data-processing/dem/sample_dem.py
-```
-
-脚本会输出 DEM 的坐标系、空间范围、波段数和 NoData 值。
-
-## 七、重新导出检查项
-
-重新导出瓦片后，应检查以下内容是否完整、路径是否一致：
+当前页面逻辑：
 
 ```text
-tileset.json
-content/
-subtrees/
+距离空间块约1千米内       → High
+约1～8千米                → Low
+约8千米外                 → 聚合树
 ```
 
-并验证模型路径、坐标系、模型朝向与高程设置。`tree-tiles-output/` 和 `tree-tiles-lod-output/` 是导出产物；`.tmp-npm-cache/` 是本机 npm 缓存，不应提交到 Git。
+进入/退出阈值略有差异，这是为避免摄像机位于边界时High/Low反复闪烁。
+
+## 13. 页面验收清单
+
+1. 平原、山区、数据边界分别观察树根是否贴地。
+2. 拉近、拉远多次，确认聚合、Low、High可以重复切换。
+3. 点击树木，确认仍返回 `Cesium3DTileFeature`。
+4. 检查Metadata中的 `id` 和 `disease_level`。
+5. 相同相机、窗口和场景下记录FPS。
+6. 页面销毁后确认没有残留事件监听和tileset引用。
+
+## 14. GeoTIFF与Cesium Terrain
+
+当前状态：
+
+```text
+树木高度：本地山东GeoTIFF DEM
+地面形状：Cesium World Terrain
+```
+
+如果两套数据在某处高度不同，树可能悬空或埋地。把GeoTIFF转换为Cesium Terrain后，
+树木和地面可以使用同一高程来源。
+
+Terrain转换不是当前树木高程脚本的一部分，也不是立即必做。以下情况建议实施：
+
+- 山东全范围需要统一高程；
+- 山区要求严格贴地；
+- 需要本地或离线地形；
+- Entity路径、起终点和查询结果需要精确贴地；
+- 需要海拔、坡度或地形分析。
+
+WMS只改变地表显示颜色，不会生成三维地形。
+
+## 15. 常见问题
+
+### 页面中的树仍然没有DEM高度
+
+检查 `DemoTestView.vue` 是否仍指向 `/tree-tiles/spatial`。DEM版必须指向：
+
+```text
+/tree-tiles/spatial-dem
+```
+
+修改后使用 `Ctrl + F5` 强制刷新。
+
+### 聚合树不消失
+
+检查浏览器Network中对应区域JSON和GLB是否返回200，再看控制台是否有
+`tileFailed`。不要先修改scale或创建Entity替代实例。
+
+### Validator出现unused accessor或不支持扩展
+
+旧版Validator不理解实例扩展引用，会把扩展使用的accessor提示为可能未使用。必须同时
+查看errors、warnings和实际Cesium加载结果。
+
+### 为什么数据库没有高程字段
+
+当前高程在生成3D Tiles时从DEM派生，不要求修改数据库。数据库可以继续只保存
+`tree_id`、经纬度和业务字段。是否缓存DEM高程属于后续业务设计，不是当前必要条件。
+
+### `generate_i3dm.py` 能否生成当前瓦片
+
+不能。它只验证 `py3dtiles` 能否导入。当前仓库没有保存最初从PostGIS导出完整GLB
+实例瓦片的可复现工具；现有DEM脚本是在已导出的GLB基础上修改实例高程。
+
+## 16. 旧测试数据脚本说明
+
+`tiles/generate_data/generate_data.py` 和 `generate_sql.py` 是早期随机测试脚本。它们没有
+固定随机种子，也不是当前10,205棵数据的完整可复现来源。
+
+旧SQL曾把疾病等级映射到绿、黄、枯三种模型。这属于旧测试数据逻辑，不应扩展为正式
+LOD规则。正式设计中：
+
+```text
+High/Low = 几何精度
+disease_level = 业务属性
+```
+
+两者必须分开。
+
+## 17. 给接手AI的最小上下文
+
+在修改数据处理或Demo前，至少确认以下事实：
+
+1. 当前实例总数是10,205，不是整数10,000。
+2. 当前基线是 `spatial`，DEM版是 `spatial-dem`。
+3. 页面使用3D Tiles GPU Instancing，不允许退回万级Entity。
+4. Feature ID是瓦片内部编号，不是数据库业务主键。
+5. 当前Metadata叫 `id`，未来正式接库时才应稳定映射为 `tree_id`。
+6. High/Low实例变换必须逐值一致。
+7. 当前Low约18个三角形/树，已经极低，不是主要性能瓶颈。
+8. 修改前先保留8→23 FPS基线，并在相同条件下复测。
+9. 不要覆盖 `spatial`，所有新实验必须写独立目录。
+10. 先阅读 `DEM_263_TREE_TEST.md` 和 `DEM_10205_TREE_TEST.md` 的验证证据。
+
+## 18. Git建议
+
+建议提交：
+
+- Python/Node数据处理脚本；
+- README和测试记录；
+- manifest、必要验证报告；
+- 项目明确要求版本化的GLB/tileset输出。
+
+不建议提交：
+
+- `dem/.venv/`；
+- `__pycache__/`；
+- `.tmp-npm-cache/`；
+- 临时HTTP服务器日志；
+- 与本次数据处理无关的个人文件。

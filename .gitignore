@@ -16,3 +16,4 @@ __pycache__/
 
 # Local package-manager cache
 .tmp-npm-cache/
+.resume_qa/

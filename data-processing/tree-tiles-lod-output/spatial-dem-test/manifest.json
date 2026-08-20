@@ -1,0 +1,39 @@
+{
+  "version": 1,
+  "testName": "263-tree DEM height test",
+  "divisions": 8,
+  "rootRegion": [
+    2.055250294577246,
+    0.6284934991732107,
+    2.0592082524987223,
+    0.6337714855406443,
+    202,
+    646
+  ],
+  "totalInstances": 263,
+  "dem": {
+    "path": "D:\\pine-wilt-disease-3d-monitor\\downloads\\DEM\\shandong-dem-12.5.tif",
+    "crs": "EPSG:32650",
+    "pixelSize": [
+      12.5,
+      12.5
+    ],
+    "nodata": -32768.0
+  },
+  "verticalDatumAssumption": "DEM values are temporarily used as Cesium ellipsoid heights; the DEM vertical datum has not yet been verified.",
+  "cells": [
+    {
+      "id": "3_4_4",
+      "parentId": "2_2_2",
+      "treeCount": 263,
+      "region": [
+        2.055250294577246,
+        0.6284934991732107,
+        2.0592082524987223,
+        0.6337714855406443,
+        202,
+        646
+      ]
+    }
+  ]
+}

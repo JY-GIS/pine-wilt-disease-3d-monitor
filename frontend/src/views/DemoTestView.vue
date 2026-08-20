@@ -51,8 +51,9 @@ const SCREEN_MARGIN = 80
 
 const CLUSTER_MODEL_URI = '/models/pine-green.glb'
 const CLUSTER_MODEL_SCALE = 1000
-const SPATIAL_MANIFEST_URI = '/tree-tiles/spatial/manifest.json'
-const SPATIAL_TILESET_BASE_URI = '/tree-tiles/spatial'
+// 当前实验页加载已写入 DEM 高程的10,205棵数据；原 spatial 基线仍保留不动。
+const SPATIAL_MANIFEST_URI = '/tree-tiles/spatial-dem/manifest.json'
+const SPATIAL_TILESET_BASE_URI = '/tree-tiles/spatial-dem'
 
 const TILESET_OPTIONS = {
     shadows: Cesium.ShadowMode.DISABLED,
