@@ -1,8 +1,6 @@
 import { reactive, readonly } from 'vue'
 
 const Cesium = window.Cesium
-
-// Version 1：单 Tileset Demo 的默认地址。
 const DEFAULT_TILESET_URL = '/tree-tiles/high/tileset.json'
 
 // ★====== version2新增开始 ==========
@@ -11,6 +9,10 @@ import {
     supportsCityTreeTiles,
 } from '../config/treeTiles.config.js'
 // ★----------- version2新增结束 ------------
+
+// ★====== version4新增开始 ==========
+import { treeState } from './useDiseasedTrees.js'
+// ★----------- version4新增结束 ------------
 
 const state = reactive({
     loading: false,
@@ -30,6 +32,10 @@ const state = reactive({
     loadedLowCount: 0,
     loadedHighCount: 0,
     // ★----------- version3新增结束 ------------
+
+    // ★====== version4新增开始 ==========
+    enabled: false,
+    // ★----------- version4新增结束 ------------
 })
 
 export function useCityTreeTiles() {
@@ -37,37 +43,50 @@ export function useCityTreeTiles() {
     let tileset = null
 
     // ★====== version2新增开始 ==========
+    // 配置、服务端 manifest、前端 cell 运行状态分开保存。
     let activeConfig = null
     let manifest = null
     let cellRuntimes = []
     // ★----------- version2新增结束 ------------
 
     // ★====== version3新增开始 ==========
-    /**
-     * clusterEntities 保存远景聚合树 Entity
-     */
     let clusterEntities = []
-
-    /**
-     * Cesium.Event.addEventListener() 会返回一个“取消监听函数”。
-     * 把它保存下来，卸载城市时调用，防止重复进入城市后监听器越来越多。
-     */
     let removeCameraChanged = null
     let removeCameraMoveEnd = null
-
-    // 保存 Cesium 相机原来的触发阈值，退出病树模式时必须恢复。
     let previousPercentageChanged = null
 
-    /**
-     * Scratch 对象是可重复使用的临时计算容器。
-     *
-     * 相机移动会多次执行 LOD 计算。如果每次都 new Cartesian2/Cartesian3，
-     * 会不断产生短命对象并增加垃圾回收压力；复用对象可减少这类开销。
-     */
+    // Scratch 对象用于复用高频空间计算的结果容器，减少垃圾回收。
     const scratchToCluster = new Cesium.Cartesian3()
     const scratchWindowPosition = new Cesium.Cartesian2()
     const scratchCellGround = new Cesium.Cartesian3()
     // ★----------- version3新增结束 ------------
+
+    // ★====== version4新增开始 ==========
+    /**
+     * runtimeVersion 是当前城市运行环境的“版本号令牌”。
+     *
+     * 每次开始加载、切换城市或卸载时都让它加 1。异步操作开始时保存
+     * 自己看到的版本号，await 返回后再次比较：
+     * - 相等：结果仍属于当前城市，可以写入场景；
+     * - 不相等：用户已经切换或退出，旧结果必须丢弃。
+     */
+    let runtimeVersion = 0
+
+    /**
+     * pendingCityGbCode：正在请求 manifest 的城市编码。
+     * pendingCityPromise：这次城市加载任务对应的 Promise。
+     *
+     * 同一城市被连续触发时，后续调用直接复用已有 Promise，既不重复 fetch，
+     * 也不会重复创建 cluster 和相机监听器。
+     */
+    let pendingCityGbCode = null
+    let pendingCityPromise = null
+
+    // 保存原有病树图层的 show 值，退出 3D Tiles 模式时按原样恢复。
+    let previousDataSourceShow = null
+    let previousPrimitiveShow = null
+    let previousSharedLabelShow = null
+    // ★----------- version4新增结束 ------------
 
     function validateViewer(targetViewer) {
         if (!targetViewer || targetViewer.isDestroyed()) {
@@ -76,29 +95,23 @@ export function useCityTreeTiles() {
     }
 
     // ★====== version2新增开始 ==========
-    /**
-     * 校验 manifest 的城市、cell 结构和树木总数。
-     * 外部 JSON 必须先校验，再交给 Cesium 使用。
-     */
+    /** 校验 manifest 的城市、cell 结构和实例总数。 */
     function validateManifest(data, config, city) {
         if (!data || !Array.isArray(data.cells)) {
             throw new Error('城市 3D Tiles manifest 缺少 cells 数组')
         }
-
         if (String(data.city?.gbCode) !== String(config.gbCode)) {
             throw new Error(
                 `manifest 城市编码不一致：` +
                 `${data.city?.gbCode} != ${config.gbCode}`
             )
         }
-
         if (String(data.city?.gbCode) !== String(city.gbCode)) {
             throw new Error(
                 `请求城市与 manifest 不一致：` +
                 `${city.gbCode} != ${data.city?.gbCode}`
             )
         }
-
         if (!Number.isInteger(data.totalInstances) || data.totalInstances < 0) {
             throw new Error('manifest.totalInstances 必须是非负整数')
         }
@@ -115,11 +128,9 @@ export function useCityTreeTiles() {
             ) {
                 throw new Error(`manifest cell 格式错误：${cell.id || '未知'}`)
             }
-
             if (!Number.isInteger(cell.treeCount) || cell.treeCount <= 0) {
                 throw new Error(`cell.treeCount 非法：${cell.id}`)
             }
-
             return total + cell.treeCount
         }, 0)
 
@@ -142,23 +153,23 @@ export function useCityTreeTiles() {
             )
         }
     }
+    // ★----------- version2新增结束 ------------
 
+    // ★====== version3修改开始 ==========
     /**
-     * cell URL 必须以 manifest 文件地址为基准进行解析，不能直接拼接网站根路径。
+     * Version 4 将 config 作为参数传入，不再依赖可能被城市切换改写的
+     * activeConfig。这样旧请求即使晚返回，解析 URL 时仍使用自己的配置。
      */
-    function resolveManifestUrl(relativeUrl) {
+    function resolveManifestUrl(relativeUrl, config) {
         const manifestAbsoluteUrl = new URL(
-            activeConfig.manifestUrl,
+            config.manifestUrl,
             window.location.origin
         )
         return new URL(relativeUrl, manifestAbsoluteUrl).toString()
     }
 
-    /**
-     * fetch() 对 404/500 不会自动抛错，所以必须主动检查 response.ok。
-     */
-    async function fetchCityManifest() {
-        const response = await fetch(activeConfig.manifestUrl)
+    async function fetchCityManifest(config) {
+        const response = await fetch(config.manifestUrl)
         if (!response.ok) {
             throw new Error(
                 `manifest 请求失败：HTTP ${response.status} ` +
@@ -167,74 +178,43 @@ export function useCityTreeTiles() {
         }
         return response.json()
     }
-    // ★----------- version2新增结束 ------------
 
-    // ★====== version2修改开始 ==========
-    /**
-     * Version 2 仍负责把 manifest cell 转换成前端 runtime cell；
-     * 但不再只保存一个 High Tileset，而是为 Version 3 准备 Low/High URL。
-     */
-    function initializeCellRuntimes() {
-        cellRuntimes = manifest.cells.map((cell) => {
-            const runtime = {
-                id: cell.id,
-                treeCount: cell.treeCount,
-                center: cell.center,
-                region: cell.region,
-                lowTilesetUrl: resolveManifestUrl(cell.lowTilesetUrl),
-                highTilesetUrl: resolveManifestUrl(cell.highTilesetUrl),
-
-                // ★====== version3新增开始 ==========
-                /**
-                 * centerCartesian 是 cell 中心经纬度转换后的地心笛卡尔坐标
-                 */
-                centerCartesian: Cesium.Cartesian3.fromDegrees(
-                    cell.center[0],  // 经度
-                    cell.center[1],  // 纬度
-                    cell.center[2]   // 高度
-                ),
-
-                // Low 与 High 各自保存 Tileset、加载 Promise 和内容就绪状态。
-                lowTileset: null,
-                lowLoadingPromise: null,
-                lowReady: false,
-                highTileset: null,
-                highLoadingPromise: null,
-                highReady: false,
-
-                /**
-                 * desiredLevel 表示调度系统“希望显示”的层级：
-                 * cluster = 远景聚合树；low = 低精度；high = 高精度。
-                 */
-                desiredLevel: 'cluster',
-
-                /**
-                 * 这两个布尔值记录上一次距离判断结果。
-                 * 它们是实现“迟滞区间”的记忆状态，不能只用当前距离临时计算。
-                 */
-                isWithinLowRange: false,
-                isWithinHighRange: false,
-
-                // 每个 cell 对应一个远景聚合 Entity。
-                clusterEntity: null,
-                error: '',
-                // ★----------- version3新增结束 ------------
-            }
-
-            return runtime
-        })
+    /** 创建包含 cluster、Low、High 状态的 cell runtime。 */
+    function initializeCellRuntimes(manifestData, config) {
+        cellRuntimes = manifestData.cells.map((cell) => ({
+            id: cell.id,
+            treeCount: cell.treeCount,
+            center: cell.center,
+            region: cell.region,
+            lowTilesetUrl: resolveManifestUrl(cell.lowTilesetUrl, config),
+            highTilesetUrl: resolveManifestUrl(cell.highTilesetUrl, config),
+            centerCartesian: Cesium.Cartesian3.fromDegrees(
+                cell.center[0],
+                cell.center[1],
+                cell.center[2]
+            ),
+            lowTileset: null,
+            lowLoadingPromise: null,
+            lowReady: false,
+            highTileset: null,
+            highLoadingPromise: null,
+            highReady: false,
+            desiredLevel: 'cluster',
+            isWithinLowRange: false,
+            isWithinHighRange: false,
+            clusterEntity: null,
+            error: '',
+        }))
 
         state.cellCount = cellRuntimes.length
         state.loadedCellCount = 0
         state.loadedLowCount = 0
         state.loadedHighCount = 0
     }
-    // ★----------- version2修改结束 ------------
+    // ★----------- version3修改结束 ------------
 
     // ★====== version3新增开始 ==========
-    /**
-     * 为每个非空 cell 创建一个远景聚合树
-     */
+    /** 每个非空 cell 创建一个远景聚合 Entity。 */
     function createClusterEntities() {
         clusterEntities = cellRuntimes.map((cell) => {
             const entity = viewer.entities.add({
@@ -257,7 +237,6 @@ export function useCityTreeTiles() {
                     style: Cesium.LabelStyle.FILL_AND_OUTLINE,
                     showBackground: true,
                     backgroundColor: Cesium.Color.BLACK.withAlpha(0.65),
-
                     pixelOffset: new Cesium.Cartesian2(
                         0,
                         activeConfig.cluster.labelOffsetY
@@ -266,7 +245,6 @@ export function useCityTreeTiles() {
                     disableDepthTestDistance: Number.POSITIVE_INFINITY,
                 },
             })
-
             cell.clusterEntity = entity
             return entity
         })
@@ -278,20 +256,13 @@ export function useCityTreeTiles() {
                 viewer.entities.remove(entity)
             })
         }
-
         clusterEntities = []
         cellRuntimes.forEach((cell) => {
             cell.clusterEntity = null
         })
     }
 
-    /**
-     * 根据 level 找出 runtime cell 中对应的属性名。
-     *
-     * cell[tilesetKey] 称为“方括号动态属性访问”：
-     * 当属性名保存在变量里时使用。例如 tilesetKey 是 'lowTileset'，
-     * cell[tilesetKey] 就等价于 cell.lowTileset。
-     */
+    /** 用动态属性名统一处理 Low/High 两套运行状态。 */
     function getLodPropertyKeys(level) {
         if (level === 'high') {
             return {
@@ -302,7 +273,6 @@ export function useCityTreeTiles() {
                 levelName: 'High',
             }
         }
-
         return {
             tilesetKey: 'lowTileset',
             loadingKey: 'lowLoadingPromise',
@@ -312,11 +282,7 @@ export function useCityTreeTiles() {
         }
     }
 
-    /**
-     * 判断某一级 Tileset 当前是否应该显示。
-     * 除了直接匹配 desiredLevel，还保留“无空白兜底”：
-     * 这能避免网络加载期间树木突然消失。
-     */
+    /** 新层级未就绪时继续显示旧层级，避免切换期间出现空白。 */
     function shouldShowLodTileset(cell, level) {
         if (level === 'high') {
             return (
@@ -326,7 +292,6 @@ export function useCityTreeTiles() {
                     cell.highReady)
             )
         }
-
         return (
             cell.desiredLevel === 'low' ||
             (cell.desiredLevel === 'high' &&
@@ -335,9 +300,6 @@ export function useCityTreeTiles() {
         )
     }
 
-    /**
-     * 重新统计已加载的 Low/High Tileset。
-     */
     function refreshLoadedCounts() {
         state.loadedLowCount = cellRuntimes.filter(
             (cell) => cell.lowTileset !== null
@@ -349,16 +311,15 @@ export function useCityTreeTiles() {
             (cell) => cell.lowTileset !== null || cell.highTileset !== null
         ).length
     }
+    // ★----------- version3新增结束 ------------
 
+    // ★====== version3修改开始 ==========
     /**
-     * 首次进入某个距离范围时，懒加载指定 cell 的 Low 或 High Tileset
+     * 按距离懒加载 Low/High；Version 4 增加运行版本校验，阻止旧城市的
+     * 异步 Tileset 在城市切换后加入新场景。
      */
     async function loadLodTileset(cell, level) {
         const keys = getLodPropertyKeys(level)
-
-        /**
-         * 如果 Tileset 已存在，说明加载完成；如果 loadingPromise 存在，说明相同请求正在进行
-         */
         if (cell[keys.tilesetKey]) {
             return cell[keys.tilesetKey]
         }
@@ -366,22 +327,19 @@ export function useCityTreeTiles() {
             return cell[keys.loadingKey]
         }
 
-        cell.error = ''
+        // ★====== version4新增开始 ==========
+        const requestVersion = runtimeVersion
+        // ★----------- version4新增结束 ------------
 
+        cell.error = ''
         try {
             cell[keys.loadingKey] = Cesium.Cesium3DTileset.fromUrl(
                 cell[keys.urlKey],
                 {
                     maximumScreenSpaceError:
                         activeConfig.tileset?.maximumScreenSpaceError ?? 32,
-
-                    /**
-                     * dynamicScreenSpaceError 会根据相机和场景状态动态放宽
-                     * 远处瓦片误差，减少远处瓦片请求。
-                     */
                     dynamicScreenSpaceError:
                         activeConfig.tileset?.dynamicScreenSpaceError ?? true,
-
                     shadows: activeConfig.tileset?.disableShadows
                         ? Cesium.ShadowMode.DISABLED
                         : Cesium.ShadowMode.ENABLED,
@@ -390,40 +348,39 @@ export function useCityTreeTiles() {
 
             const loadedTileset = await cell[keys.loadingKey]
 
+            // ★====== version4新增开始 ==========
             /**
-             * 异步请求完成时页面可能已经卸载。
-             * isDestroyed() 用于判断 Cesium Viewer 是否仍可使用；如果不可用，
-             * 必须销毁刚创建但尚未加入场景的 Tileset。
+             * Array.includes(value) 使用严格相等判断数组中是否包含该对象。
+             * 这里不仅检查版本号，还检查 cell 对象仍属于当前 cellRuntimes，
+             * 防止已被替换的旧 runtime 写回场景。
              */
-            if (!viewer || viewer.isDestroyed()) {
+            if (
+                !isRuntimeCurrent(requestVersion) ||
+                !cellRuntimes.includes(cell)
+            ) {
                 loadedTileset.destroy()
                 return null
             }
+            // ★----------- version4新增结束 ------------
 
             loadedTileset.show = shouldShowLodTileset(cell, level)
             cell[keys.tilesetKey] = loadedTileset
 
-            /**
-             * tileLoad 在某个瓦片内容下载并处理完成时触发。
-             * fromUrl() 完成只代表 tileset.json 已解析，不代表 GLB 已经显示，
-             * 因此不能过早把 cluster 或旧层级隐藏。
-             */
             loadedTileset.tileLoad.addEventListener(() => {
                 if (cell[keys.readyKey]) {
                     return
                 }
-
                 cell[keys.readyKey] = true
-
-                /**
-                 * setTimeout(callback, 0) 把更新推迟到当前 Cesium 事件结束后。
-                 * 这样不会在 tileLoad 回调执行过程中立即修改显示调度状态。
-                 */
                 setTimeout(() => {
+                    // ★====== version4新增开始 ==========
+                    // 延迟回调执行前再次核对版本，旧城市不再触发 LOD 更新。
+                    if (!isRuntimeCurrent(requestVersion)) {
+                        return
+                    }
+                    // ★----------- version4新增结束 ------------
                     updateLodByCamera()
                 }, 0)
             })
-
             loadedTileset.tileFailed.addEventListener((tileError) => {
                 console.error(
                     `cell ${cell.id} 的 ${keys.levelName} GLB 加载失败：`,
@@ -434,40 +391,31 @@ export function useCityTreeTiles() {
 
             viewer.scene.primitives.add(loadedTileset)
             refreshLoadedCounts()
-
             return loadedTileset
         } catch (error) {
-            cell.error = error?.message || String(error)
-            console.error(
-                `[useCityTreeTiles:Version3] cell ${cell.id} ` +
-                `${keys.levelName} Tileset 加载失败`,
-                error
-            )
+            // 旧请求失败不应覆盖新城市的错误信息。
+            if (isRuntimeCurrent(requestVersion)) {
+                cell.error = error?.message || String(error)
+                console.error(
+                    `[useCityTreeTiles:Version4] cell ${cell.id} ` +
+                    `${keys.levelName} Tileset 加载失败`,
+                    error
+                )
+            }
             return null
         } finally {
             cell[keys.loadingKey] = null
         }
     }
+    // ★----------- version3修改结束 ------------
 
-    /**
-     * 判断 cluster 的世界坐标是否位于当前屏幕附近。
-     * 远景时只显示镜头前方、投影到画布范围内的聚合树。
-     */
+    // ★====== version3新增开始 ==========
     function isClusterOnScreen(position) {
-        /**
-         * Cartesian3.subtract(A, B, result) 计算 A-B，并把结果写进 result。
-         * 这里得到“从相机指向 cluster”的向量。
-         */
         Cesium.Cartesian3.subtract(
             position,
             viewer.camera.positionWC,
             scratchToCluster
         )
-
-        /**
-         * dot() 是向量点积。相机方向与目标方向点积 <= 0，
-         * 表示目标位于相机侧面之后，无需继续做屏幕投影。
-         */
         if (
             Cesium.Cartesian3.dot(
                 viewer.camera.directionWC,
@@ -477,9 +425,6 @@ export function useCityTreeTiles() {
             return false
         }
 
-        /**
-         * worldToWindowCoordinates() 把三维世界坐标转换为二维屏幕像素。
-         */
         const windowPosition =
             Cesium.SceneTransforms.worldToWindowCoordinates(
                 viewer.scene,
@@ -500,21 +445,10 @@ export function useCityTreeTiles() {
         )
     }
 
-    /**
-     * 计算相机到 cell 地表矩形的最近距离，单位为米。
-     */
+    /** 计算相机到 cell 地表矩形的最近距离，而不是到中心点的距离。 */
     function getCameraDistanceToCell(camera, cell) {
-        /**
-         * 数组解构：按顺序把 region 前四项取出。
-         * manifest.region 使用 3D Tiles 标准：[west,south,east,north,minH,maxH]
-         */
         const [west, south, east, north] = cell.region
         const cameraPosition = camera.positionCartographic
-
-        /**
-         * Cesium.Math.clamp(value,min,max) 把值限制在闭区间内。
-         * 相机经纬度在矩形外时取最近边界；在矩形内时保持原值。
-         */
         const nearestLongitude = Cesium.Math.clamp(
             cameraPosition.longitude,
             west,
@@ -525,11 +459,6 @@ export function useCityTreeTiles() {
             south,
             north
         )
-
-        /**
-         * fromRadians() 接收弧度；高度设为 0 表示 cell 的地表参考点。
-         * 最后一个参数是复用的 scratch 结果对象。
-         */
         Cesium.Cartesian3.fromRadians(
             nearestLongitude,
             nearestLatitude,
@@ -537,7 +466,6 @@ export function useCityTreeTiles() {
             Cesium.Ellipsoid.WGS84,
             scratchCellGround
         )
-
         return Cesium.Cartesian3.distance(
             camera.positionWC,
             scratchCellGround
@@ -545,7 +473,8 @@ export function useCityTreeTiles() {
     }
 
     /**
-     * ★ - 按当前相机位置更新所有 cell 的目标 LOD - ★
+     * 核心 LOD：远处 cluster，中距离 Low，近距离 High；进入与退出阈值
+     * 不同，形成迟滞区间，避免相机在边界附近导致层级反复闪烁。
      */
     function updateLodByCamera() {
         if (!viewer || viewer.isDestroyed() || !activeConfig) {
@@ -554,13 +483,9 @@ export function useCityTreeTiles() {
 
         const camera = viewer.camera
         const distanceConfig = activeConfig.lodDistance
-
         cellRuntimes.forEach((cell) => {
             const distance = getCameraDistanceToCell(camera, cell)
 
-            /**
-             * 迟滞判断：进入阈值和退出阈值不同
-             */
             if (cell.isWithinLowRange) {
                 cell.isWithinLowRange =
                     distance < distanceConfig.lowExitMeters
@@ -568,7 +493,6 @@ export function useCityTreeTiles() {
                 cell.isWithinLowRange =
                     distance <= distanceConfig.lowEnterMeters
             }
-
             if (cell.isWithinHighRange) {
                 cell.isWithinHighRange =
                     distance < distanceConfig.highExitMeters
@@ -610,44 +534,22 @@ export function useCityTreeTiles() {
                 (cell.desiredLevel === 'cluster' || !hasReadyFallback)
         })
 
-        /**
-         * requestRender() 请求 Cesium 再渲染一帧。
-         * 项目如果启用了按需渲染，直接修改 show 后必须通知场景刷新。
-         */
         viewer.scene.requestRender()
     }
 
-    /**
-     * 注册相机事件，驱动 LOD 更新。
-     *
-     * camera.changed：相机变化达到 percentageChanged 阈值时触发；
-     * camera.moveEnd：拖动、缩放或飞行结束时再执行一次最终校正。
-     */
     function setupLodCameraListeners() {
         previousPercentageChanged = viewer.camera.percentageChanged
         viewer.camera.percentageChanged =
             activeConfig.camera.percentageChanged
-
-        /**
-         * 注意这里没有写 updateLodByCamera()：
-         * addEventListener 需要接收“函数本身”，由 Cesium 在事件发生时调用。
-         * 如果加括号，就会在注册时立刻执行并把返回值传进去。
-         */
         removeCameraChanged = viewer.camera.changed.addEventListener(
             updateLodByCamera
         )
         removeCameraMoveEnd = viewer.camera.moveEnd.addEventListener(
             updateLodByCamera
         )
-
-        // 注册后立即计算一次，不能等用户第一次移动相机才显示内容。
         updateLodByCamera()
     }
 
-    /**
-     * 移除相机监听并恢复 Cesium 原有 percentageChanged。
-     * addEventListener() 返回的取消函数不需要参数，直接调用即可。
-     */
     function removeLodCameraListeners() {
         if (removeCameraChanged) {
             removeCameraChanged()
@@ -664,11 +566,8 @@ export function useCityTreeTiles() {
     }
     // ★----------- version3新增结束 ------------
 
-    // ★====== version2修改开始 ==========
-    /**
-     * Version 2 的释放逻辑改为同时移除 Low 和 High Tileset。
-     * PrimitiveCollection.remove() 默认会销毁已加入集合的 Primitive。
-     */
+    // ★====== version3修改开始 ==========
+    /** 移除当前城市已经加入场景的全部 Low/High Tileset。 */
     function removeCellTilesets() {
         if (viewer && !viewer.isDestroyed()) {
             cellRuntimes.forEach((cell) => {
@@ -680,26 +579,39 @@ export function useCityTreeTiles() {
                 }
             })
         }
-
         cellRuntimes = []
         manifest = null
         activeConfig = null
     }
-    // ★----------- version2修改结束 ------------
+    // ★----------- version3修改结束 ------------
 
-    // ★====== version1修改开始 ==========
-    function unloadTreeTiles() {
-        // Version 3 的释放顺序：事件 → Entity → Tileset → 基础状态。
-        removeLodCameraListeners()
-        removeClusterEntities()
-        removeCellTilesets()
+    // ★====== version4新增开始 ==========
+    /**
+     * 判断一个异步结果是否仍属于当前运行环境。
+     *
+     * && 表示三个条件必须全部成立：版本一致、Viewer 存在、Viewer 未销毁。
+     * 把判断集中在一个函数中，可以避免各异步回调写出不同的校验标准。
+     */
+    function isRuntimeCurrent(version) {
+        return (
+            version === runtimeVersion &&
+            viewer !== null &&
+            !viewer.isDestroyed()
+        )
+    }
 
-        if (tileset && viewer && !viewer.isDestroyed()) {
-            viewer.scene.primitives.remove(tileset)
-        }
+    /**
+     * 让所有旧异步任务立即失效。
+     * JavaScript 无法直接取消已经发出的普通 fetch，但可以让返回结果失去写入资格，这种做法常称为“逻辑取消”或“版本令牌”。
+     */
+    function invalidateRuntime() {
+        runtimeVersion += 1
+        pendingCityGbCode = null
+        pendingCityPromise = null
+    }
 
-        tileset = null
-        viewer = null
+    /** 清空当前城市相关的响应式状态，但不修改 enabled。 */
+    function resetCityState() {
         state.loading = false
         state.loaded = false
         state.tilesetUrl = ''
@@ -713,113 +625,293 @@ export function useCityTreeTiles() {
         state.loadedHighCount = 0
     }
 
+    /**
+     * 隐藏旧病树图层，并只在第一次隐藏时保存原始 show 值。
+     *
+     * null 在这里是“尚未备份”的哨兵值。原始 show 可能本来就是 false，
+     * 所以不能用 if (!previousDataSourceShow) 判断是否已经备份。
+     */
+    function hideLegacyTreeLayer() {
+        if (treeState.dataSource) {
+            if (previousDataSourceShow === null) {
+                previousDataSourceShow = treeState.dataSource.show
+            }
+            treeState.dataSource.show = false
+        }
+
+        if (treeState.pointPrimitiveCollection) {
+            if (previousPrimitiveShow === null) {
+                previousPrimitiveShow =
+                    treeState.pointPrimitiveCollection.show
+            }
+            treeState.pointPrimitiveCollection.show = false
+        }
+
+        if (treeState.sharedLabelEntity?.label) {
+            if (previousSharedLabelShow === null) {
+                previousSharedLabelShow =
+                    treeState.sharedLabelEntity.label.show
+            }
+            treeState.sharedLabelEntity.label.show = false
+        }
+    }
+
+    /** 恢复旧图层进入 3D Tiles 模式前的显示状态。 */
+    function restoreLegacyTreeLayer() {
+        if (treeState.dataSource && previousDataSourceShow !== null) {
+            treeState.dataSource.show = previousDataSourceShow
+        }
+        if (
+            treeState.pointPrimitiveCollection &&
+            previousPrimitiveShow !== null
+        ) {
+            treeState.pointPrimitiveCollection.show = previousPrimitiveShow
+        }
+        if (
+            treeState.sharedLabelEntity?.label &&
+            previousSharedLabelShow !== null
+        ) {
+            treeState.sharedLabelEntity.label.show = previousSharedLabelShow
+        }
+
+        previousDataSourceShow = null
+        previousPrimitiveShow = null
+        previousSharedLabelShow = null
+    }
+
+    /**
+     * 只释放 Cesium 资源，不改变 enabled，也不恢复旧病树图层。
+     * 城市 A 切换到城市 B 时要使用它，因为 3D Tiles 模式仍然开启。
+     */
+    function releaseCurrentResources() {
+        removeLodCameraListeners()
+        removeClusterEntities()
+        removeCellTilesets()
+
+        if (tileset && viewer && !viewer.isDestroyed()) {
+            viewer.scene.primitives.remove(tileset)
+        }
+        tileset = null
+    }
+
+    /**
+     * 停止当前城市并恢复普通病树模式。
+     * 释放顺序是：异步令牌 → 事件 → Entity → Tileset → 旧图层恢复。
+     */
+    function unloadCurrentCity() {
+        invalidateRuntime()
+        releaseCurrentResources()
+        viewer = null
+        resetCityState()
+        restoreLegacyTreeLayer()
+        state.enabled = false
+    }
+
+    /**
+     * 真正执行 manifest 请求和城市运行时初始化。
+     * 单独拆出这个函数，loadCity() 才能把 Promise 保存下来供重复调用复用。
+     */
+    async function performCityLoad(config, city, loadVersion) {
+        try {
+            const manifestData = await fetchCityManifest(config)
+
+            if (!isRuntimeCurrent(loadVersion)) {
+                return null
+            }
+
+            validateManifest(manifestData, config, city)
+            manifest = manifestData
+            activeConfig = config
+            state.totalInstances = manifestData.totalInstances
+            initializeCellRuntimes(manifestData, config)
+            createClusterEntities()
+
+            state.loading = false
+            state.loaded = true
+            setupLodCameraListeners()
+            return cellRuntimes
+        } catch (error) {
+            /**
+             * 旧请求的失败同样不能覆盖新城市状态。
+             * 如果版本已经失效，安静返回 null 即可。
+             */
+            if (!isRuntimeCurrent(loadVersion)) {
+                return null
+            }
+
+            const message =
+                `城市病树 3D Tiles 加载失败：${error?.message || error}`
+            invalidateRuntime()
+            releaseCurrentResources()
+            viewer = null
+            resetCityState()
+            restoreLegacyTreeLayer()
+            state.enabled = false
+            state.error = message
+            console.error('[useCityTreeTiles:Version4]', error)
+            return null
+        } finally {
+            if (loadVersion === runtimeVersion) {
+                pendingCityGbCode = null
+                pendingCityPromise = null
+            }
+        }
+    }
+
+    /**
+     * 加载或切换城市。
+     *
+     * 三种分支：
+     * 1. 当前城市已经加载：直接返回现有 runtime；
+     * 2. 相同城市正在加载：返回同一个 pending Promise；
+     * 3. 新城市：旧版本失效、释放旧资源，再开始新请求。
+     */
+    async function loadCity(targetViewer, city) {
+        validateViewer(targetViewer)
+
+        if (!city || !city.gbCode) {
+            state.error = '缺少城市对象或 city.gbCode'
+            return null
+        }
+
+        const cityGbCode = String(city.gbCode)
+        const config = getCityTreeTilesConfig(cityGbCode)
+        if (!config) {
+            state.error = `城市 ${cityGbCode} 暂无病树 3D Tiles 数据`
+            return null
+        }
+
+        if (
+            state.loaded &&
+            state.cityGbCode === cityGbCode &&
+            viewer === targetViewer
+        ) {
+            return cellRuntimes
+        }
+
+        if (
+            pendingCityGbCode === cityGbCode &&
+            pendingCityPromise &&
+            viewer === targetViewer
+        ) {
+            return pendingCityPromise
+        }
+
+        invalidateRuntime()
+        releaseCurrentResources()
+        resetCityState()
+
+        viewer = targetViewer
+        activeConfig = config
+        state.enabled = true
+        state.loading = true
+        state.cityGbCode = cityGbCode
+        state.cityName = city.name || config.name
+        state.tilesetUrl = config.manifestUrl
+        hideLegacyTreeLayer()
+
+        const loadVersion = runtimeVersion
+        pendingCityGbCode = cityGbCode
+        pendingCityPromise = performCityLoad(config, city, loadVersion)
+        return pendingCityPromise
+    }
+
+    /**
+     * 根据行政区 Store 当前状态同步 3D Tiles。
+     */
+    async function syncCityTreeTiles(targetViewer, viewLevel, city) {
+        if (!state.enabled) {
+            return null
+        }
+        if (
+            viewLevel !== 'city' ||
+            !city ||
+            !supportsCityTreeTiles(city.gbCode)
+        ) {
+            disableCityTreeTiles()
+            return null
+        }
+        return loadCity(targetViewer, city)
+    }
+
+    /**
+     * 用户点击树木按钮时调用：已开启则关闭，未开启则加载当前城市。
+     * 返回布尔值，true 表示最终处于开启状态，false 表示关闭或加载失败。
+     */
+    async function toggleCityTreeTiles(targetViewer, viewLevel, city) {
+        if (state.enabled) {
+            disableCityTreeTiles()
+            return false
+        }
+        if (viewLevel !== 'city' || !city) {
+            state.error = '只有进入市级视图后才能开启城市病树 3D Tiles'
+            return false
+        }
+        if (!supportsCityTreeTiles(city.gbCode)) {
+            state.error = `${city.name || '当前城市'}暂无病树 3D Tiles 数据`
+            return false
+        }
+
+        const result = await loadCity(targetViewer, city)
+        return result !== null && state.enabled
+    }
+
+    /** 明确关闭城市 3D Tiles 模式。 */
+    function disableCityTreeTiles() {
+        unloadCurrentCity()
+    }
+    // ★----------- version4新增结束 ------------
+
+    // ★====== version3修改开始 ==========
+    /** Version 1 Demo 加载仍保留，但也接入 Version 4 的统一失效与释放。 */
     async function loadTreeTiles(
         targetViewer,
         tilesetUrl = DEFAULT_TILESET_URL
     ) {
         validateViewer(targetViewer)
-        if (state.loading) {
-            return null
-        }
+        unloadCurrentCity()
 
-        unloadTreeTiles()
         viewer = targetViewer
         state.loading = true
         state.tilesetUrl = tilesetUrl
+        const loadVersion = runtimeVersion
 
         try {
-            tileset = await Cesium.Cesium3DTileset.fromUrl(tilesetUrl, {
-                maximumScreenSpaceError: 32,
-            })
+            const loadedTileset =
+                await Cesium.Cesium3DTileset.fromUrl(tilesetUrl, {
+                    maximumScreenSpaceError: 32,
+                })
+            if (!isRuntimeCurrent(loadVersion)) {
+                loadedTileset.destroy()
+                return null
+            }
+            tileset = loadedTileset
             viewer.scene.primitives.add(tileset)
             state.loading = false
             state.loaded = true
             viewer.flyTo(tileset, { duration: 2 })
             return tileset
         } catch (error) {
-            state.loading = false
-            state.loaded = false
-            state.error = `病树 3D Tiles 加载失败：${error?.message || error}`
-            console.error('[useCityTreeTiles:Version1]', error)
-            return null
-        }
-    }
-    // ★----------- version1修改结束 ------------
-
-    // ★====== version2修改开始 ==========
-    /**
-     * Version 2 的城市加载流程仍是“配置 → manifest → runtime”；
-     * Version 3 修改了最后一步：不再 Promise.all() 加载全部 High，
-     * 而是创建 cluster，并由相机监听决定何时懒加载 Low/High。
-     *
-     * @returns {Promise<object[]|null>} 成功时返回 cellRuntimes
-     */
-    async function loadCity(targetViewer, city) {
-        validateViewer(targetViewer)
-
-        if (state.loading) {
-            return null
-        }
-        if (!city || !city.gbCode) {
-            state.error = '缺少城市对象或 city.gbCode'
-            return null
-        }
-
-        const config = getCityTreeTilesConfig(city.gbCode)
-        if (!config) {
-            state.error = `城市 ${city.gbCode} 暂无病树 3D Tiles 数据`
-            return null
-        }
-
-        unloadTreeTiles()
-        viewer = targetViewer
-        activeConfig = config
-        state.loading = true
-        state.cityGbCode = String(city.gbCode)
-        state.cityName = city.name || config.name
-        state.tilesetUrl = config.manifestUrl
-
-        try {
-            manifest = await fetchCityManifest()
-            validateManifest(manifest, activeConfig, city)
-
-            state.totalInstances = manifest.totalInstances
-            initializeCellRuntimes()
-
-            // ★====== version3新增开始 ==========
-            createClusterEntities()
-
-            /**
-             * loaded=true 表示“城市 LOD 系统初始化完成”，
-             * 不表示所有 Low/High Tileset 已下载。它们会随相机按需加载。
-             */
-            state.loading = false
-            state.loaded = true
-            setupLodCameraListeners()
-            // ★----------- version3新增结束 ------------
-
-            return cellRuntimes
-        } catch (error) {
-            const message =
-                `城市病树 3D Tiles 加载失败：${error?.message || error}`
-            unloadTreeTiles()
-            state.error = message
-            console.error('[useCityTreeTiles:Version3]', error)
+            if (isRuntimeCurrent(loadVersion)) {
+                state.loading = false
+                state.error =
+                    `病树 3D Tiles 加载失败：${error?.message || error}`
+                console.error('[useCityTreeTiles:Version1]', error)
+            }
             return null
         }
     }
 
-    function unloadCurrentCity() {
-        unloadTreeTiles()
+    function unloadTreeTiles() {
+        unloadCurrentCity()
     }
-    // ★----------- version2修改结束 ------------
 
     function destroyCityTreeTiles() {
-        unloadTreeTiles()
+        disableCityTreeTiles()
     }
+    // ★----------- version3修改结束 ------------
 
     return {
-        // readonly() 防止页面绕过本模块直接修改内部状态。
         state: readonly(state),
         loadTreeTiles,
         unloadTreeTiles,
@@ -828,6 +920,11 @@ export function useCityTreeTiles() {
         loadCity,
         unloadCurrentCity,
         updateLodByCamera,
-        // ★----------- version3新增结束 ------------
+
+        // ★====== version4新增开始 ==========
+        syncCityTreeTiles,
+        toggleCityTreeTiles,
+        disableCityTreeTiles,
+        // ★----------- version4新增结束 ------------
     }
 }
