@@ -1,0 +1,477 @@
+{
+  "status": "passed",
+  "generatedAt": "2026-08-22T22:53:34.451809+08:00",
+  "cityGbCode": "156370200",
+  "expectedInstanceCount": 1055,
+  "outputInstanceCount": 1055,
+  "uniqueTreeIdCount": 1055,
+  "duplicateTreeIds": [],
+  "metadataProperties": [
+    "tree_id",
+    "disease_level"
+  ],
+  "gradeCounts": {
+    "1": 104,
+    "2": 301,
+    "3": 364,
+    "4": 200,
+    "5": 86
+  },
+  "modelCounts": {
+    "green": 405,
+    "yellow": 564,
+    "dry": 86
+  },
+  "scale": 15.0,
+  "demHeightRange": [
+    10.0,
+    962.7850803202891
+  ],
+  "maximumOutputHorizontalErrorMeters": 0.00030453731292632414,
+  "maximumOutputHeightErrorMeters": 0.00034819864958990365,
+  "maximumHighLowPositionDifferenceMeters": 0.0,
+  "modelSources": {
+    "high": {
+      "green": {
+        "path": "D:\\pine-wilt-disease-3d-monitor\\data-processing\\tiles\\model\\pine-green.glb",
+        "sha256": "5f754f3bfd579e2f023413f78535a24e70e1b43d1f98133c59f887fb0371c15e",
+        "bounds": [
+          [
+            -0.9351301789283752,
+            -0.012996622361242771,
+            -0.8308249711990356
+          ],
+          [
+            1.021031141281128,
+            2.68703031539917,
+            0.9845377802848816
+          ]
+        ]
+      },
+      "yellow": {
+        "path": "D:\\pine-wilt-disease-3d-monitor\\data-processing\\tiles\\model\\pine-yellow.glb",
+        "sha256": "59bc9baec5f303e4ade51938828a9d2d5423cd55cf8025c51a1697a51c325630",
+        "bounds": [
+          [
+            -0.8173914551734924,
+            -0.012996622361242771,
+            -0.8308249711990356
+          ],
+          [
+            1.1387698650360107,
+            2.68703031539917,
+            0.9845377802848816
+          ]
+        ]
+      },
+      "dry": {
+        "path": "D:\\pine-wilt-disease-3d-monitor\\data-processing\\tiles\\model\\pine-dry.glb",
+        "sha256": "0039263c4973dc1098e90d77f6c38465797be90f2cdb1414374c4c5422f2e86f",
+        "bounds": [
+          [
+            -0.6992484927177429,
+            -0.05404417961835861,
+            -0.6027277112007141
+          ],
+          [
+            0.6305696964263916,
+            2.9051382541656494,
+            1.2621444463729858
+          ]
+        ]
+      }
+    },
+    "low": {
+      "green": {
+        "path": "D:\\pine-wilt-disease-3d-monitor\\data-processing\\tree-tiles-lod-output\\low\\pine-green-low.glb",
+        "sha256": "e718c7f4893ec6aa3a69b12828120f5f2c9581769eb2448091ba1f4089c6626c",
+        "bounds": [
+          [
+            -0.9351301789283752,
+            -0.012996622361242771,
+            -0.8308249711990356
+          ],
+          [
+            1.021031141281128,
+            2.68703031539917,
+            0.9845377802848816
+          ]
+        ]
+      },
+      "yellow": {
+        "path": "D:\\pine-wilt-disease-3d-monitor\\data-processing\\tree-tiles-lod-output\\low\\pine-yellow-low.glb",
+        "sha256": "4518f40def41bb20f76cad049624c0c3939d1f2ea2c01d54430be1575c5cb7dd",
+        "bounds": [
+          [
+            -0.8173914551734924,
+            -0.012996622361242771,
+            -0.8308249711990356
+          ],
+          [
+            1.1387698650360107,
+            2.68703031539917,
+            0.9845377802848816
+          ]
+        ]
+      },
+      "dry": {
+        "path": "D:\\pine-wilt-disease-3d-monitor\\data-processing\\tree-tiles-lod-output\\low\\pine-dry-low.glb",
+        "sha256": "d4fb071e3e5bab5dbdb5807c6aaaf5acbfdc705cf54061f3ac627cc6f0752aeb",
+        "bounds": [
+          [
+            -0.6992484927177429,
+            -0.05404417961835861,
+            -0.6027277112007141
+          ],
+          [
+            0.6305696964263916,
+            2.9051382541656494,
+            1.2621444463729858
+          ]
+        ]
+      }
+    }
+  },
+  "checks": {
+    "instanceCountMatches": true,
+    "treeIdsGloballyUnique": true,
+    "demCoverageComplete": true,
+    "metadataExact": true,
+    "gradeModelMappingValid": true,
+    "scaleValid": true,
+    "highLowAligned": true,
+    "coordinateErrorWithinTolerance": true
+  },
+  "cells": [
+    {
+      "id": "3_0_0",
+      "treeCount": 33,
+      "coordinateErrors": {
+        "low": {
+          "maximumHorizontalErrorMeters": 0.00030453731292632414,
+          "maximumHeightErrorMeters": 0.00030184560479540323
+        },
+        "high": {
+          "maximumHorizontalErrorMeters": 0.00030453731292632414,
+          "maximumHeightErrorMeters": 0.00030184560479540323
+        }
+      },
+      "maximumHighLowPositionDifferenceMeters": 0.0
+    },
+    {
+      "id": "3_1_0",
+      "treeCount": 98,
+      "coordinateErrors": {
+        "low": {
+          "maximumHorizontalErrorMeters": 0.00024214096953214162,
+          "maximumHeightErrorMeters": 0.00015092823383611176
+        },
+        "high": {
+          "maximumHorizontalErrorMeters": 0.00024214096953214162,
+          "maximumHeightErrorMeters": 0.00015092823383611176
+        }
+      },
+      "maximumHighLowPositionDifferenceMeters": 0.0
+    },
+    {
+      "id": "3_1_1",
+      "treeCount": 66,
+      "coordinateErrors": {
+        "low": {
+          "maximumHorizontalErrorMeters": 0.0002469668249087837,
+          "maximumHeightErrorMeters": 0.00020190709804523976
+        },
+        "high": {
+          "maximumHorizontalErrorMeters": 0.0002469668249087837,
+          "maximumHeightErrorMeters": 0.00020190709804523976
+        }
+      },
+      "maximumHighLowPositionDifferenceMeters": 0.0
+    },
+    {
+      "id": "3_1_2",
+      "treeCount": 14,
+      "coordinateErrors": {
+        "low": {
+          "maximumHorizontalErrorMeters": 0.00013129517247676838,
+          "maximumHeightErrorMeters": 5.6361584924502495e-05
+        },
+        "high": {
+          "maximumHorizontalErrorMeters": 0.00013129517247676838,
+          "maximumHeightErrorMeters": 5.6361584924502495e-05
+        }
+      },
+      "maximumHighLowPositionDifferenceMeters": 0.0
+    },
+    {
+      "id": "3_2_0",
+      "treeCount": 35,
+      "coordinateErrors": {
+        "low": {
+          "maximumHorizontalErrorMeters": 0.00025140302820299564,
+          "maximumHeightErrorMeters": 0.0002548066622694023
+        },
+        "high": {
+          "maximumHorizontalErrorMeters": 0.00025140302820299564,
+          "maximumHeightErrorMeters": 0.0002548066622694023
+        }
+      },
+      "maximumHighLowPositionDifferenceMeters": 0.0
+    },
+    {
+      "id": "3_2_1",
+      "treeCount": 76,
+      "coordinateErrors": {
+        "low": {
+          "maximumHorizontalErrorMeters": 0.0002891267426655397,
+          "maximumHeightErrorMeters": 0.00034819864958990365
+        },
+        "high": {
+          "maximumHorizontalErrorMeters": 0.0002891267426655397,
+          "maximumHeightErrorMeters": 0.00034819864958990365
+        }
+      },
+      "maximumHighLowPositionDifferenceMeters": 0.0
+    },
+    {
+      "id": "3_2_2",
+      "treeCount": 5,
+      "coordinateErrors": {
+        "low": {
+          "maximumHorizontalErrorMeters": 0.00011525921921648053,
+          "maximumHeightErrorMeters": 4.377556615509093e-05
+        },
+        "high": {
+          "maximumHorizontalErrorMeters": 0.00011525921921648053,
+          "maximumHeightErrorMeters": 4.377556615509093e-05
+        }
+      },
+      "maximumHighLowPositionDifferenceMeters": 0.0
+    },
+    {
+      "id": "3_2_3",
+      "treeCount": 27,
+      "coordinateErrors": {
+        "low": {
+          "maximumHorizontalErrorMeters": 0.00016533141876799888,
+          "maximumHeightErrorMeters": 0.00012480261011660332
+        },
+        "high": {
+          "maximumHorizontalErrorMeters": 0.00016533141876799888,
+          "maximumHeightErrorMeters": 0.00012480261011660332
+        }
+      },
+      "maximumHighLowPositionDifferenceMeters": 0.0
+    },
+    {
+      "id": "3_2_7",
+      "treeCount": 30,
+      "coordinateErrors": {
+        "low": {
+          "maximumHorizontalErrorMeters": 0.00014233837056204995,
+          "maximumHeightErrorMeters": 0.0001907978075905703
+        },
+        "high": {
+          "maximumHorizontalErrorMeters": 0.00014233837056204995,
+          "maximumHeightErrorMeters": 0.0001907978075905703
+        }
+      },
+      "maximumHighLowPositionDifferenceMeters": 0.0
+    },
+    {
+      "id": "3_3_0",
+      "treeCount": 32,
+      "coordinateErrors": {
+        "low": {
+          "maximumHorizontalErrorMeters": 0.0001176031835229519,
+          "maximumHeightErrorMeters": 5.02499249819266e-05
+        },
+        "high": {
+          "maximumHorizontalErrorMeters": 0.0001176031835229519,
+          "maximumHeightErrorMeters": 5.02499249819266e-05
+        }
+      },
+      "maximumHighLowPositionDifferenceMeters": 0.0
+    },
+    {
+      "id": "3_3_1",
+      "treeCount": 159,
+      "coordinateErrors": {
+        "low": {
+          "maximumHorizontalErrorMeters": 0.0002060181135826101,
+          "maximumHeightErrorMeters": 0.00015776629641095496
+        },
+        "high": {
+          "maximumHorizontalErrorMeters": 0.0002060181135826101,
+          "maximumHeightErrorMeters": 0.00015776629641095496
+        }
+      },
+      "maximumHighLowPositionDifferenceMeters": 0.0
+    },
+    {
+      "id": "3_3_2",
+      "treeCount": 32,
+      "coordinateErrors": {
+        "low": {
+          "maximumHorizontalErrorMeters": 0.0001256324524235504,
+          "maximumHeightErrorMeters": 0.00010787368955789134
+        },
+        "high": {
+          "maximumHorizontalErrorMeters": 0.0001256324524235504,
+          "maximumHeightErrorMeters": 0.00010787368955789134
+        }
+      },
+      "maximumHighLowPositionDifferenceMeters": 0.0
+    },
+    {
+      "id": "3_3_3",
+      "treeCount": 14,
+      "coordinateErrors": {
+        "low": {
+          "maximumHorizontalErrorMeters": 0.000143766263328914,
+          "maximumHeightErrorMeters": 8.300660198301557e-05
+        },
+        "high": {
+          "maximumHorizontalErrorMeters": 0.000143766263328914,
+          "maximumHeightErrorMeters": 8.300660198301557e-05
+        }
+      },
+      "maximumHighLowPositionDifferenceMeters": 0.0
+    },
+    {
+      "id": "3_3_7",
+      "treeCount": 71,
+      "coordinateErrors": {
+        "low": {
+          "maximumHorizontalErrorMeters": 0.0002625367673459264,
+          "maximumHeightErrorMeters": 0.0001861223437344961
+        },
+        "high": {
+          "maximumHorizontalErrorMeters": 0.0002625367673459264,
+          "maximumHeightErrorMeters": 0.0001861223437344961
+        }
+      },
+      "maximumHighLowPositionDifferenceMeters": 0.0
+    },
+    {
+      "id": "3_4_1",
+      "treeCount": 18,
+      "coordinateErrors": {
+        "low": {
+          "maximumHorizontalErrorMeters": 0.00012050334715371522,
+          "maximumHeightErrorMeters": 4.5808796130586416e-05
+        },
+        "high": {
+          "maximumHorizontalErrorMeters": 0.00012050334715371522,
+          "maximumHeightErrorMeters": 4.5808796130586416e-05
+        }
+      },
+      "maximumHighLowPositionDifferenceMeters": 0.0
+    },
+    {
+      "id": "3_4_2",
+      "treeCount": 5,
+      "coordinateErrors": {
+        "low": {
+          "maximumHorizontalErrorMeters": 3.0132876049875545e-05,
+          "maximumHeightErrorMeters": 7.746927977336782e-06
+        },
+        "high": {
+          "maximumHorizontalErrorMeters": 3.0132876049875545e-05,
+          "maximumHeightErrorMeters": 7.746927977336782e-06
+        }
+      },
+      "maximumHighLowPositionDifferenceMeters": 0.0
+    },
+    {
+      "id": "3_4_7",
+      "treeCount": 39,
+      "coordinateErrors": {
+        "low": {
+          "maximumHorizontalErrorMeters": 0.0002328210582352425,
+          "maximumHeightErrorMeters": 9.969963866751641e-05
+        },
+        "high": {
+          "maximumHorizontalErrorMeters": 0.0002328210582352425,
+          "maximumHeightErrorMeters": 9.969963866751641e-05
+        }
+      },
+      "maximumHighLowPositionDifferenceMeters": 0.0
+    },
+    {
+      "id": "3_5_2",
+      "treeCount": 1,
+      "coordinateErrors": {
+        "low": {
+          "maximumHorizontalErrorMeters": 0.0,
+          "maximumHeightErrorMeters": 1.1874448091475642e-09
+        },
+        "high": {
+          "maximumHorizontalErrorMeters": 0.0,
+          "maximumHeightErrorMeters": 1.1874448091475642e-09
+        }
+      },
+      "maximumHighLowPositionDifferenceMeters": 0.0
+    },
+    {
+      "id": "3_6_2",
+      "treeCount": 21,
+      "coordinateErrors": {
+        "low": {
+          "maximumHorizontalErrorMeters": 0.0001463559038091649,
+          "maximumHeightErrorMeters": 8.396250484565826e-05
+        },
+        "high": {
+          "maximumHorizontalErrorMeters": 0.0001463559038091649,
+          "maximumHeightErrorMeters": 8.396250484565826e-05
+        }
+      },
+      "maximumHighLowPositionDifferenceMeters": 0.0
+    },
+    {
+      "id": "3_6_3",
+      "treeCount": 92,
+      "coordinateErrors": {
+        "low": {
+          "maximumHorizontalErrorMeters": 0.0002138116574875955,
+          "maximumHeightErrorMeters": 0.0002074470175443821
+        },
+        "high": {
+          "maximumHorizontalErrorMeters": 0.0002138116574875955,
+          "maximumHeightErrorMeters": 0.0002074470175443821
+        }
+      },
+      "maximumHighLowPositionDifferenceMeters": 0.0
+    },
+    {
+      "id": "3_7_2",
+      "treeCount": 52,
+      "coordinateErrors": {
+        "low": {
+          "maximumHorizontalErrorMeters": 0.00017532885294840715,
+          "maximumHeightErrorMeters": 0.00016661669360473752
+        },
+        "high": {
+          "maximumHorizontalErrorMeters": 0.00017532885294840715,
+          "maximumHeightErrorMeters": 0.00016661669360473752
+        }
+      },
+      "maximumHighLowPositionDifferenceMeters": 0.0
+    },
+    {
+      "id": "3_7_3",
+      "treeCount": 135,
+      "coordinateErrors": {
+        "low": {
+          "maximumHorizontalErrorMeters": 0.0002578733364233582,
+          "maximumHeightErrorMeters": 0.00022737792460247874
+        },
+        "high": {
+          "maximumHorizontalErrorMeters": 0.0002578733364233582,
+          "maximumHeightErrorMeters": 0.00022737792460247874
+        }
+      },
+      "maximumHighLowPositionDifferenceMeters": 0.0
+    }
+  ]
+}

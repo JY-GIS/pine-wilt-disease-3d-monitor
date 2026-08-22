@@ -68,6 +68,46 @@
                         <button class="coords-copy" @click="copyCoords">复制</button>
                     </div>
                 </div>
+                <div class="tree-tiles-control">
+                    <div
+                        v-if="cityTreeTilesState.enabled"
+                        class="tree-tiles-status"
+                        :class="{
+                            'tree-tiles-status--error':
+                                cityTreeTilesState.error
+                        }"
+                    >
+                        <span v-if="cityTreeTilesState.loading">
+                            正在加载 {{ cityTreeTilesState.cityName || '城市' }}病树…
+                        </span>
+
+                        <span v-else-if="cityTreeTilesState.error">
+                            {{ cityTreeTilesState.error }}
+                        </span>
+
+                        <span v-else-if="cityTreeTilesState.loaded">
+                            {{ cityTreeTilesState.cityName }}：
+                            {{ cityTreeTilesState.totalInstances }} 棵
+                        </span>
+
+                        <span v-else>
+                            请选择城市
+                        </span>
+                    </div>
+                    <button
+                        class="tree-tiles-toggle"
+                        :class="{
+                            'tree-tiles-toggle--active':
+                                cityTreeTilesState.enabled,
+                            'tree-tiles-toggle--loading':
+                                cityTreeTilesState.loading
+                        }"
+                        :title="cityTreeTilesButtonTitle"
+                        @click="handleToggleCityTreeTiles"
+                    >
+                        🌲
+                    </button>
+                </div>
             </section>
 
             <!-- 右侧面板 -->
@@ -80,7 +120,7 @@
 </template>
 
 <script setup>
-    import { onMounted, onUnmounted, ref, provide, watch } from 'vue'
+    import { computed, onMounted, onUnmounted, ref, provide, watch } from 'vue'
     import LeftSidePanel from '../components/panels/LeftSidePanel.vue'
     import RightSidePanel from '../components/panels/RightSidePanel.vue'
     import AppHeader from '../components/layout/AppHeader.vue'
@@ -109,6 +149,7 @@
     import { useMeasureHeight, heightState } from '../composables/useMeasureHeight.js'
     import { useMeasureArea, areaState } from '../composables/useMeasureArea.js'
     import { formatDistance, formatAngle, formatHeight, formatHeightCompare, formatArea } from '../utils/measureUtils.js'
+    import { useCityTreeTiles } from '../composables/useCityTreeTiles.js'
 
     //====================== 【全局变量统一管理】 ======================
     const { 
@@ -217,6 +258,30 @@
         toggle: toggleArea,
         clear: clearArea,
     } = useMeasureArea()
+    const {
+        state: cityTreeTilesState,
+        syncCityTreeTiles,
+        toggleCityTreeTiles,
+        disableCityTreeTiles,
+        destroyCityTreeTiles,
+        ensureTreeTilesPicking,
+        applyGradeFilter: applyCityTreeTilesGradeFilter,
+    } = useCityTreeTiles()
+    const cityTreeTilesButtonTitle = computed(() => {
+        if (cityTreeTilesState.loading) {
+            return '正在加载城市病树 3D Tiles'
+        }
+        if (cityTreeTilesState.error) {
+            return cityTreeTilesState.error
+        }
+        if (cityTreeTilesState.loaded) {
+            return `关闭${cityTreeTilesState.cityName || '城市'}病树 3D Tiles`
+        }
+        if (cityTreeTilesState.enabled) {
+            return '病树 3D Tiles 已开启，请选择城市'
+        }
+        return '开启城市病树 3D Tiles'
+    })
 
     // ===== 函数（仍需 viewer，保留 provide） =====
     provide('deleteTree', async () => { await deleteTree(viewer);refreshGradeStats() })
@@ -256,6 +321,10 @@
         if (heightState.enabled) toggleHeight(viewer)
         if (areaState.enabled) toggleArea(viewer)
         togglePickMode(viewer)
+
+        if (!coords.enabled) {
+            ensureTreeTilesPicking()
+        }
     }
 
     // ====== 测距切换与清空 ======
@@ -296,7 +365,34 @@
     
     // ==================== 【3D 松树切换】 ====================
     function handleTogglePine() {
+        // 两套 3D 树模式互斥，避免 Entity 松树和实例化 Tiles 同时出现。
+        if (cityTreeTilesState.enabled) {
+            disableCityTreeTiles()
+        }
         togglePineMode(viewer)
+    }
+
+    // ★====== 城市病树 3D Tiles 新增开始 ==========
+    /**
+     * 开关支持两种顺序：
+     * 1. 先进入青岛，再点击按钮；
+     * 2. 先点击按钮，再进入青岛。
+     */
+    async function handleToggleCityTreeTiles() {
+        // 开启新模式前关闭旧版 Entity 松树 Demo。
+        if (!cityTreeTilesState.enabled && pineState.enabled) {
+            togglePineMode(viewer)
+        }
+
+        const remainsEnabled = await toggleCityTreeTiles(
+            viewer,
+            adminStore.viewLevel,
+            adminStore.currentCity
+        )
+
+        if (remainsEnabled) {
+            applyCityTreeTilesGradeFilter(treeStore.selectedGrade)
+        }
     }
 
     //===================== 【页面挂载执行初始化】 =====================
@@ -329,6 +425,7 @@
             setupDoubleClickToFly(viewer)
             highLightTree(viewer)
             setupProvinceInteraction(viewer)
+            ensureTreeTilesPicking()
         })
         setRouteRestoreCallback(() => {
             handleLeftClickEvent(viewer)
@@ -336,6 +433,7 @@
             generateMergedBuffer(viewer)
             highLightTree(viewer)
             setupProvinceInteraction(viewer)
+            ensureTreeTilesPicking()
         })
         setMeasureRestoreCallback(() => {
             handleLeftClickEvent(viewer)
@@ -343,6 +441,7 @@
             generateMergedBuffer(viewer)
             highLightTree(viewer)
             setupProvinceInteraction(viewer)
+            ensureTreeTilesPicking()
         })
         setHeightRestoreCallback(() => {
             handleLeftClickEvent(viewer)
@@ -350,6 +449,7 @@
             generateMergedBuffer(viewer)
             highLightTree(viewer)
             setupProvinceInteraction(viewer)
+            ensureTreeTilesPicking()
         })
         setAreaRestoreCallback(() => {
             handleLeftClickEvent(viewer)
@@ -357,6 +457,7 @@
             generateMergedBuffer(viewer)
             highLightTree(viewer)
             setupProvinceInteraction(viewer)
+            ensureTreeTilesPicking()
         })
     })
 
@@ -393,6 +494,30 @@
         { deep: true }
     )
 
+    // ★====== 城市病树 3D Tiles  ==========
+    watch(
+        () => [
+            adminStore.viewLevel,
+            adminStore.currentCity?.gbCode,
+        ],
+        async () => {
+            if (!viewer || !cityTreeTilesState.enabled) {
+                return
+            }
+
+            const currentCity = adminStore.currentCity
+
+            await syncCityTreeTiles(
+                viewer,
+                adminStore.viewLevel,
+                currentCity
+            )
+
+            // 城市切换完成后立即继承当前等级筛选。
+            applyCityTreeTilesGradeFilter(treeStore.selectedGrade)
+        }
+    )
+
     // ===== 页面卸载时销毁 Cesium Viewer，防止再次进入时复用旧实例（绿屏） =====
     onUnmounted(() => {
         restorePickInteractions(viewer)
@@ -402,6 +527,7 @@
         clearMeasure(viewer)
         clearHeight(viewer)
         clearArea(viewer)
+        destroyCityTreeTiles()
         destroyViewer()
     })
 
@@ -416,6 +542,7 @@
             }
             // 3D 松树模式下的等级过滤
             applyPineGradeFilter(treeStore.selectedGrade)
+            applyCityTreeTilesGradeFilter(treeStore.selectedGrade)
         }
     )
     // ===== 时空趋势分析：时间过滤联动 =====
@@ -607,5 +734,69 @@
 
     :deep(.cesium-viewer-bottom) {
         display: none !important;
+    }
+    .tree-tiles-control {
+        position: absolute;
+        right: 8px;
+        bottom: 8px;
+        z-index: 60;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .tree-tiles-toggle {
+        width: 44px;
+        height: 44px;
+        padding: 0;
+        border: 1px solid #00d4ff;
+        border-radius: 50%;
+        background: rgba(10, 40, 60, 0.88);
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.45);
+        cursor: pointer;
+        font-size: 23px;
+        line-height: 1;
+        transition:
+            background 0.2s,
+            border-color 0.2s,
+            transform 0.2s;
+    }
+
+    .tree-tiles-toggle:hover {
+        background: rgba(0, 212, 255, 0.35);
+        transform: translateY(-1px);
+    }
+
+    .tree-tiles-toggle--active {
+        border-color: #62ff8a;
+        background: rgba(24, 130, 67, 0.88);
+    }
+
+    .tree-tiles-toggle--loading {
+        cursor: progress;
+        animation: tree-tiles-pulse 1.2s infinite;
+    }
+
+    .tree-tiles-status {
+        max-width: 260px;
+        padding: 6px 10px;
+        border: 1px solid rgba(98, 255, 138, 0.75);
+        border-radius: 4px;
+        background: rgba(10, 40, 60, 0.9);
+        color: #e8f0fe;
+        font-size: 12px;
+        line-height: 1.4;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+    }
+
+    .tree-tiles-status--error {
+        border-color: #ffbf47;
+        color: #ffe0a3;
+    }
+
+    @keyframes tree-tiles-pulse {
+        50% {
+            box-shadow: 0 0 14px rgba(98, 255, 138, 0.85);
+        }
     }
 </style>

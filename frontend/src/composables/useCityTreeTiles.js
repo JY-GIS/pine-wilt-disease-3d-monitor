@@ -14,6 +14,15 @@ import {
 import { treeState } from './useDiseasedTrees.js'
 // ★----------- version4新增结束 ------------
 
+// ★====== version5新增开始 ==========
+/**
+ * API 提供后端病树查询地址和统一请求头。
+ * useTreeStore 负责把点击结果共享给周边查询面板等 Vue 组件。
+ */
+import { API } from '../config/api.config.js'
+import { useTreeStore } from '../stores/treeStore.js'
+// ★----------- version5新增结束 ------------
+
 const state = reactive({
     loading: false,
     loaded: false,
@@ -36,9 +45,24 @@ const state = reactive({
     // ★====== version4新增开始 ==========
     enabled: false,
     // ★----------- version4新增结束 ------------
+
+    // ★====== version5新增开始 ==========
+    /**
+     * selectionLoading 只表示“单树详情请求”是否进行中，不能复用 loading。
+     * loading 属于城市 manifest，二者可能在不同时间发生。
+     */
+    selectionLoading: false,
+    selectedTreeId: null,
+    selectedDiseaseLevel: null,
+    selectionError: '',
+    // ★----------- version5新增结束 ------------
 })
 
 export function useCityTreeTiles() {
+    // ★====== version5新增开始 ==========
+    const treeStore = useTreeStore()
+    // ★----------- version5新增结束 ------------
+
     let viewer = null
     let tileset = null
 
@@ -63,22 +87,11 @@ export function useCityTreeTiles() {
 
     // ★====== version4新增开始 ==========
     /**
-     * runtimeVersion 是当前城市运行环境的“版本号令牌”。
-     *
-     * 每次开始加载、切换城市或卸载时都让它加 1。异步操作开始时保存
-     * 自己看到的版本号，await 返回后再次比较：
-     * - 相等：结果仍属于当前城市，可以写入场景；
-     * - 不相等：用户已经切换或退出，旧结果必须丢弃。
+     * 城市异步版本令牌：切换或卸载后，旧请求不得再写入场景。
      */
     let runtimeVersion = 0
 
-    /**
-     * pendingCityGbCode：正在请求 manifest 的城市编码。
-     * pendingCityPromise：这次城市加载任务对应的 Promise。
-     *
-     * 同一城市被连续触发时，后续调用直接复用已有 Promise，既不重复 fetch，
-     * 也不会重复创建 cluster 和相机监听器。
-     */
+    // 同城重复调用复用已有 Promise，避免重复请求和重复事件监听。
     let pendingCityGbCode = null
     let pendingCityPromise = null
 
@@ -87,6 +100,32 @@ export function useCityTreeTiles() {
     let previousPrimitiveShow = null
     let previousSharedLabelShow = null
     // ★----------- version4新增结束 ------------
+
+    // ★====== version5新增开始 ==========
+    /**
+     * selectionVersion 是“单树详情查询”的版本令牌。
+     * - runtimeVersion 解决城市切换；
+     * - selectionVersion 解决用户快速连续点击多棵树。
+     */
+    let selectionVersion = 0
+
+    /**
+     * viewer.screenSpaceEventHandler 的 LEFT_CLICK 同一时刻只能保存一个处理函数。
+     * originalLeftClick 保存进入 3D Tiles 模式前的处理函数；
+     * treeTilesLeftClick 保存本模块安装的处理函数，退出时据此安全恢复。
+     */
+    let originalLeftClick = null
+    let treeTilesLeftClick = null
+
+    // selectionMarker 是点击病树后创建的金色定位 Entity。
+    let selectionMarker = null
+
+    /**
+     * 保存当前等级筛选。新 Tileset 是按相机距离异步加载的，
+     * 因此不能只筛选“此刻已经存在”的 Tileset，还要让后加载的 Tileset 自动继承同一个筛选条件。
+     */
+    let activeGradeFilter = null
+    // ★----------- version5新增结束 ------------
 
     function validateViewer(targetViewer) {
         if (!targetViewer || targetViewer.isDestroyed()) {
@@ -282,6 +321,59 @@ export function useCityTreeTiles() {
         }
     }
 
+    /** 把 null 或 1~5 之外的值统一处理为“不过滤”。 */
+    function normalizeGradeFilter(grade) {
+        if (grade === null || grade === undefined || grade === '') {
+            return null
+        }
+        const numericGrade = Number(grade)
+        return Number.isInteger(numericGrade) &&
+            numericGrade >= 1 &&
+            numericGrade <= 5
+            ? numericGrade
+            : null
+    }
+
+    /**
+     * Cesium3DTileStyle：在 GPU 渲染阶段按结构化 Metadata 决定实例是否显示。
+     * 这是 3D Tiles 按属性筛选的 【标准写法】 
+     */
+    function applyGradeStyleToTileset(targetTileset) {
+        if (!targetTileset || !activeConfig) {
+            return
+        }
+
+        const diseaseLevelProperty =
+            activeConfig.metadata.diseaseLevelProperty
+        const showExpression = activeGradeFilter === null
+            ? true
+            : `\${${diseaseLevelProperty}} === ${activeGradeFilter}`
+
+        targetTileset.style = new Cesium.Cesium3DTileStyle({
+            show: showExpression,
+        })
+    }
+
+    /**
+     * 同时更新已经加载的 Low/High Tileset，并记录条件供以后懒加载使用。
+     */
+    function applyGradeFilter(grade) {
+        activeGradeFilter = normalizeGradeFilter(grade)
+
+        cellRuntimes.forEach((cell) => {
+            applyGradeStyleToTileset(cell.lowTileset)
+            applyGradeStyleToTileset(cell.highTileset)
+        })
+
+        if (
+            activeGradeFilter !== null &&
+            state.selectedTreeId !== null &&
+            Number(state.selectedDiseaseLevel) !== activeGradeFilter
+        ) {
+            clearTreeSelection()
+        }
+    }
+
     /** 新层级未就绪时继续显示旧层级，避免切换期间出现空白。 */
     function shouldShowLodTileset(cell, level) {
         if (level === 'high') {
@@ -349,11 +441,7 @@ export function useCityTreeTiles() {
             const loadedTileset = await cell[keys.loadingKey]
 
             // ★====== version4新增开始 ==========
-            /**
-             * Array.includes(value) 使用严格相等判断数组中是否包含该对象。
-             * 这里不仅检查版本号，还检查 cell 对象仍属于当前 cellRuntimes，
-             * 防止已被替换的旧 runtime 写回场景。
-             */
+            // await 后核对城市版本和 cell 身份，旧运行时只能销毁结果。
             if (
                 !isRuntimeCurrent(requestVersion) ||
                 !cellRuntimes.includes(cell)
@@ -362,6 +450,9 @@ export function useCityTreeTiles() {
                 return null
             }
             // ★----------- version4新增结束 ------------
+
+            // 新瓦片必须继承当前筛选，否则移动相机后会重新出现其他等级。
+            applyGradeStyleToTileset(loadedTileset)
 
             loadedTileset.show = shouldShowLodTileset(cell, level)
             cell[keys.tilesetKey] = loadedTileset
@@ -373,7 +464,6 @@ export function useCityTreeTiles() {
                 cell[keys.readyKey] = true
                 setTimeout(() => {
                     // ★====== version4新增开始 ==========
-                    // 延迟回调执行前再次核对版本，旧城市不再触发 LOD 更新。
                     if (!isRuntimeCurrent(requestVersion)) {
                         return
                     }
@@ -393,7 +483,6 @@ export function useCityTreeTiles() {
             refreshLoadedCounts()
             return loadedTileset
         } catch (error) {
-            // 旧请求失败不应覆盖新城市的错误信息。
             if (isRuntimeCurrent(requestVersion)) {
                 cell.error = error?.message || String(error)
                 console.error(
@@ -585,13 +674,345 @@ export function useCityTreeTiles() {
     }
     // ★----------- version3修改结束 ------------
 
-    // ★====== version4新增开始 ==========
+    // ★====== version5新增开始 ==========
     /**
-     * 判断一个异步结果是否仍属于当前运行环境。
-     *
-     * && 表示三个条件必须全部成立：版本一致、Viewer 存在、Viewer 未销毁。
-     * 把判断集中在一个函数中，可以避免各异步回调写出不同的校验标准。
+     * 从被点击的 Cesium3DTileFeature 中读取业务 Metadata。
      */
+    function readTreeFeatureMetadata(feature) {
+        const businessIdProperty =
+            activeConfig.metadata.businessIdProperty
+        const diseaseLevelProperty =
+            activeConfig.metadata.diseaseLevelProperty
+
+        if (!feature.hasProperty(businessIdProperty)) {
+            throw new Error(
+                `被点击实例缺少 Metadata：${businessIdProperty}`
+            )
+        }
+
+        const rawTreeId = feature.getProperty(businessIdProperty)
+        if (
+            rawTreeId === null ||
+            rawTreeId === undefined ||
+            String(rawTreeId).length === 0
+        ) {
+            throw new Error('被点击实例的 tree_id 为空')
+        }
+
+        let diseaseLevel = null
+        if (feature.hasProperty(diseaseLevelProperty)) {
+            diseaseLevel = feature.getProperty(diseaseLevelProperty)
+        }
+
+        return {
+            treeId: String(rawTreeId),
+            diseaseLevel: diseaseLevel,
+        }
+    }
+
+    /**
+     * 根据业务 tree_id 请求 Spring Boot 中的病树详情。
+     *
+     * encodeURIComponent(value)：把树编号中的空格、中文、斜杠等特殊字符
+     * 转义成安全的 URL 参数，避免它们破坏查询字符串。
+     */
+    async function fetchTreeDetail(treeId) {
+        const safeTreeId = encodeURIComponent(treeId)
+        const response = await fetch(API.searchTreeById(safeTreeId), {
+            method: 'GET',
+            headers: API.getHeaders(),
+        })
+
+        if (!response.ok) {
+            throw new Error(
+                `病树详情请求失败：HTTP ${response.status} ` +
+                `${response.statusText}`
+            )
+        }
+
+        const result = await response.json()
+
+        /**
+         * Array.isArray() 确认 result.data 真的是数组。
+         * 现有 searchTreeById 接口即使只查一棵树，也返回数组，
+         * 所以必须读取 result.data[0]，不能直接把 result.data 当病树对象。
+         */
+        if (
+            result.code !== 1 ||
+            !Array.isArray(result.data) ||
+            result.data.length === 0
+        ) {
+            throw new Error(result.msg || result.message || '未找到该病树')
+        }
+
+        return result.data[0]
+    }
+
+    /** 移除上一次点击创建的金色标记。 */
+    function removeSelectionMarker() {
+        if (
+            selectionMarker &&
+            viewer &&
+            !viewer.isDestroyed()
+        ) {
+            viewer.entities.remove(selectionMarker)
+        }
+        selectionMarker = null
+    }
+
+    /**
+     * 在后端返回的真实经纬度位置创建选中标记。
+     *
+     * 为什么不用鼠标点击位置：scene.pickPosition() 得到的是模型表面位置，
+     * 可能受树模型缩放和枝叶几何影响；数据库经纬度才是业务树木的位置。
+     */
+    function createSelectionMarker(tree, metadata) {
+        const longitude = Number(tree.longitude)
+        const latitude = Number(tree.latitude)
+
+        /**
+         * Number.isFinite() 只接受有限数字，会排除 NaN、Infinity 和
+         * -Infinity。坐标非法时不创建 Entity，避免 Cesium 内部计算报错。
+         */
+        if (
+            !Number.isFinite(longitude) ||
+            !Number.isFinite(latitude)
+        ) {
+            state.selectionError = '后端病树详情缺少合法经纬度'
+            return null
+        }
+
+        removeSelectionMarker()
+
+        const businessTreeId = tree.treeId || metadata.treeId
+        const diseaseLevel = tree.grade ?? metadata.diseaseLevel
+
+        const labelText = [
+            `ID: ${businessTreeId}`,
+            `树种: ${tree.species || '未知'}`,
+            `等级: ${diseaseLevel ?? '未知'}级`,
+            `胸径: ${tree.chest ?? '未知'}cm`,
+        ].join('\n')
+
+        selectionMarker = viewer.entities.add({
+            id: 'city-tree-tiles-selection-marker',
+            position: Cesium.Cartesian3.fromDegrees(
+                longitude,
+                latitude
+            ),
+            point: {
+                pixelSize: 12,
+                color: Cesium.Color.GOLD,
+                outlineColor: Cesium.Color.BLACK,
+                outlineWidth: 2,
+                heightReference: Cesium.HeightReference.CLAMP_TO_GROUND,
+                disableDepthTestDistance: Number.POSITIVE_INFINITY,
+            },
+            label: {
+                text: labelText,
+                font: '12px Microsoft YaHei',
+                fillColor: Cesium.Color.WHITE,
+                outlineColor: Cesium.Color.BLACK,
+                outlineWidth: 2,
+                style: Cesium.LabelStyle.FILL_AND_OUTLINE,
+                showBackground: true,
+                backgroundColor: Cesium.Color.BLACK.withAlpha(0.7),
+                verticalOrigin: Cesium.VerticalOrigin.BOTTOM,
+                pixelOffset: new Cesium.Cartesian2(0, -20),
+                disableDepthTestDistance: Number.POSITIVE_INFINITY,
+            },
+        })
+
+        return selectionMarker
+    }
+
+    function writeTreeDetailToStore(tree, metadata) {
+        const businessTreeId = tree.treeId || metadata.treeId
+        const diseaseLevel = tree.grade ?? metadata.diseaseLevel
+
+        treeStore.selectedTreeId = businessTreeId
+
+        /**
+         * 3D Tiles 中的一棵树是 GPU Instance，不是独立 Entity；
+         * 当前不能通过 viewer.entities.remove() 单独删除，所以不显示删除按钮。
+         */
+        treeStore.showDeleteButton = false
+
+        treeStore.setCenterTreeInfo({
+            treeId: businessTreeId,
+            species: tree.species,
+            grade: diseaseLevel,
+            lng: Number(tree.longitude),
+            lat: Number(tree.latitude),
+            chest: tree.chest,
+        })
+    }
+
+    function clearTreeSelection() {
+        selectionVersion += 1
+        removeSelectionMarker()
+
+        state.selectionLoading = false
+        state.selectedTreeId = null
+        state.selectedDiseaseLevel = null
+        state.selectionError = ''
+
+        treeStore.selectedTreeId = null
+        treeStore.showDeleteButton = false
+        treeStore.clearNearbyResults()
+    }
+
+    /**
+     * 完成一次“Metadata → 后端详情 → Store → Cesium标记”的业务闭环。
+     */
+    async function selectTreeFeature(feature) {
+        let metadata
+        try {
+            metadata = readTreeFeatureMetadata(feature)
+        } catch (error) {
+            clearTreeSelection()
+            state.selectionError = error?.message || String(error)
+            return null
+        }
+
+        removeSelectionMarker()
+        treeStore.clearNearbyResults()
+        treeStore.selectedTreeId = null
+        treeStore.showDeleteButton = false
+
+        selectionVersion += 1
+        const requestSelectionVersion = selectionVersion
+        const requestRuntimeVersion = runtimeVersion
+
+        state.selectionLoading = true
+        state.selectedTreeId = metadata.treeId
+        state.selectedDiseaseLevel = metadata.diseaseLevel
+        state.selectionError = ''
+
+        try {
+            const tree = await fetchTreeDetail(metadata.treeId)
+
+            /**
+             * 这里要同时校验两个版本：
+             * - selectionVersion 保证结果仍属于最后一次点击；
+             * - runtimeVersion 保证结果仍属于当前城市。
+             */
+            if (
+                requestSelectionVersion !== selectionVersion ||
+                !isRuntimeCurrent(requestRuntimeVersion)
+            ) {
+                return null
+            }
+
+            writeTreeDetailToStore(tree, metadata)
+            state.selectedDiseaseLevel = tree.grade ?? metadata.diseaseLevel
+            createSelectionMarker(tree, metadata)
+            state.selectionLoading = false
+            return tree
+        } catch (error) {
+            if (
+                requestSelectionVersion === selectionVersion &&
+                isRuntimeCurrent(requestRuntimeVersion)
+            ) {
+                state.selectionLoading = false
+                state.selectionError =
+                    `病树详情查询失败：${error?.message || error}`
+            }
+            return null
+        }
+    }
+
+    /**
+     * 处理 3D Tiles 模式下的左键点击。
+     */
+    function handleTreeTilesLeftClick(click) {
+        const picked = viewer.scene.pick(click.position)
+
+        const businessIdProperty =
+            activeConfig?.metadata?.businessIdProperty
+
+        if (
+            picked instanceof Cesium.Cesium3DTileFeature &&
+            businessIdProperty &&
+            picked.hasProperty(businessIdProperty)
+        ) {
+            selectTreeFeature(picked)
+            return
+        }
+
+        clearTreeSelection()
+
+        // 没点到病树实例时继续执行原处理器，保证城市、省份和普通 Entity 的点击功能不被 3D Tiles 模式吞掉
+        if (originalLeftClick) {
+            originalLeftClick(click)
+        }
+    }
+
+    /**
+     * 接管 Viewer 已有的 LEFT_CLICK。
+     */
+    function ensureTreeTilesPicking() {
+        if (
+            !state.enabled ||
+            !state.loaded ||
+            !viewer ||
+            viewer.isDestroyed()
+        ) {
+            return false
+        }
+
+        const handler = viewer.screenSpaceEventHandler
+        if (!handler || handler.isDestroyed()) {
+            throw new Error('Cesium ScreenSpaceEventHandler 不可用')
+        }
+
+        const leftClickType = Cesium.ScreenSpaceEventType.LEFT_CLICK
+        if (!treeTilesLeftClick) {
+            treeTilesLeftClick = handleTreeTilesLeftClick
+        }
+
+        const currentLeftClick = handler.getInputAction(leftClickType) || null
+        if (currentLeftClick === treeTilesLeftClick) {
+            return true
+        }
+
+        originalLeftClick = currentLeftClick
+        handler.setInputAction(treeTilesLeftClick, leftClickType)
+        return true
+    }
+
+    /**
+     * 释放 Picking 并恢复进入 3D Tiles 模式前的 LEFT_CLICK。
+     */
+    function removeTreeTilesPicking() {
+        if (viewer && !viewer.isDestroyed()) {
+            const handler = viewer.screenSpaceEventHandler
+            if (handler && !handler.isDestroyed()) {
+                const leftClickType =
+                    Cesium.ScreenSpaceEventType.LEFT_CLICK
+                const currentLeftClick =
+                    handler.getInputAction(leftClickType)
+
+                if (currentLeftClick === treeTilesLeftClick) {
+                    handler.removeInputAction(leftClickType)
+                    if (originalLeftClick) {
+                        handler.setInputAction(
+                            originalLeftClick,
+                            leftClickType
+                        )
+                    }
+                }
+            }
+        }
+
+        originalLeftClick = null
+        treeTilesLeftClick = null
+        clearTreeSelection()
+    }
+    // ★----------- version5新增结束 ------------
+
+    // ★====== version4新增开始 ==========
+    /** 判断异步结果是否仍属于当前城市运行环境。 */
     function isRuntimeCurrent(version) {
         return (
             version === runtimeVersion &&
@@ -600,10 +1021,7 @@ export function useCityTreeTiles() {
         )
     }
 
-    /**
-     * 让所有旧异步任务立即失效。
-     * JavaScript 无法直接取消已经发出的普通 fetch，但可以让返回结果失去写入资格，这种做法常称为“逻辑取消”或“版本令牌”。
-     */
+    /** 增加版本号，让旧 fetch 和旧 Tileset 请求失去写入资格。 */
     function invalidateRuntime() {
         runtimeVersion += 1
         pendingCityGbCode = null
@@ -623,14 +1041,16 @@ export function useCityTreeTiles() {
         state.loadedCellCount = 0
         state.loadedLowCount = 0
         state.loadedHighCount = 0
+
+        // ★====== version5新增开始 ==========
+        state.selectionLoading = false
+        state.selectedTreeId = null
+        state.selectedDiseaseLevel = null
+        state.selectionError = ''
+        // ★----------- version5新增结束 ------------
     }
 
-    /**
-     * 隐藏旧病树图层，并只在第一次隐藏时保存原始 show 值。
-     *
-     * null 在这里是“尚未备份”的哨兵值。原始 show 可能本来就是 false，
-     * 所以不能用 if (!previousDataSourceShow) 判断是否已经备份。
-     */
+    /** 隐藏旧病树图层，并保存进入模式前的真实 show 值。 */
     function hideLegacyTreeLayer() {
         if (treeState.dataSource) {
             if (previousDataSourceShow === null) {
@@ -684,6 +1104,14 @@ export function useCityTreeTiles() {
      * 城市 A 切换到城市 B 时要使用它，因为 3D Tiles 模式仍然开启。
      */
     function releaseCurrentResources() {
+        // ★====== version4修改开始 ==========
+        /**
+         * Version 5 增加 Picking，所以它必须最先释放：此时 Viewer 仍有效，
+         * 可以安全移除选择标记并恢复原 LEFT_CLICK。
+         */
+        removeTreeTilesPicking()
+        // ★----------- version4修改结束 ------------
+
         removeLodCameraListeners()
         removeClusterEntities()
         removeCellTilesets()
@@ -707,10 +1135,7 @@ export function useCityTreeTiles() {
         state.enabled = false
     }
 
-    /**
-     * 真正执行 manifest 请求和城市运行时初始化。
-     * 单独拆出这个函数，loadCity() 才能把 Promise 保存下来供重复调用复用。
-     */
+    /** 执行 manifest 请求；拆出后可让重复调用复用同一个 Promise。 */
     async function performCityLoad(config, city, loadVersion) {
         try {
             const manifestData = await fetchCityManifest(config)
@@ -729,12 +1154,17 @@ export function useCityTreeTiles() {
             state.loading = false
             state.loaded = true
             setupLodCameraListeners()
+
+            // ★====== version4修改开始 ==========
+            /**
+             * LOD 和场景对象初始化完成后才能安装 Picking；
+             * 如果提前安装，用户可能点击到尚未准备好的旧场景对象。
+             */
+            ensureTreeTilesPicking()
+            // ★----------- version4修改结束 ------------
+
             return cellRuntimes
         } catch (error) {
-            /**
-             * 旧请求的失败同样不能覆盖新城市状态。
-             * 如果版本已经失效，安静返回 null 即可。
-             */
             if (!isRuntimeCurrent(loadVersion)) {
                 return null
             }
@@ -803,6 +1233,8 @@ export function useCityTreeTiles() {
 
         viewer = targetViewer
         activeConfig = config
+        // 先读取全局筛选状态，保证第一批异步加载的 Tileset 不会短暂显示错等级。
+        activeGradeFilter = normalizeGradeFilter(treeStore.selectedGrade)
         state.enabled = true
         state.loading = true
         state.cityGbCode = cityGbCode
@@ -823,12 +1255,15 @@ export function useCityTreeTiles() {
         if (!state.enabled) {
             return null
         }
-        if (
-            viewLevel !== 'city' ||
-            !city ||
-            !supportsCityTreeTiles(city.gbCode)
-        ) {
-            disableCityTreeTiles()
+
+        if (viewLevel !== 'city' || !city) {
+            suspendCurrentCity('请选择城市后加载病树 3D Tiles')
+            return null
+        }
+        if (!supportsCityTreeTiles(city.gbCode)) {
+            suspendCurrentCity(
+                `${city.name || '当前城市'}暂无病树 3D Tiles 数据`
+            )
             return null
         }
         return loadCity(targetViewer, city)
@@ -843,17 +1278,36 @@ export function useCityTreeTiles() {
             disableCityTreeTiles()
             return false
         }
+
+        validateViewer(targetViewer)
+        state.enabled = true
+        state.error = ''
+
         if (viewLevel !== 'city' || !city) {
-            state.error = '只有进入市级视图后才能开启城市病树 3D Tiles'
-            return false
+            state.error = '请选择城市后加载病树 3D Tiles'
+            return true
         }
         if (!supportsCityTreeTiles(city.gbCode)) {
             state.error = `${city.name || '当前城市'}暂无病树 3D Tiles 数据`
-            return false
+            return true
         }
 
         const result = await loadCity(targetViewer, city)
         return result !== null && state.enabled
+    }
+
+    /**
+     * 暂停当前城市资源，但保留 enabled=true。
+     * 这样用户可以先开按钮再选青岛，也可以离开市级后再进入其他城市。
+     */
+    function suspendCurrentCity(message = '') {
+        invalidateRuntime()
+        releaseCurrentResources()
+        viewer = null
+        resetCityState()
+        restoreLegacyTreeLayer()
+        state.enabled = true
+        state.error = message
     }
 
     /** 明确关闭城市 3D Tiles 模式。 */
@@ -920,11 +1374,22 @@ export function useCityTreeTiles() {
         loadCity,
         unloadCurrentCity,
         updateLodByCamera,
+        applyGradeFilter,
+        ensureTreeTilesPicking,
 
         // ★====== version4新增开始 ==========
         syncCityTreeTiles,
         toggleCityTreeTiles,
         disableCityTreeTiles,
         // ★----------- version4新增结束 ------------
+
+        // ★====== version5新增开始 ==========
+        /**
+         * selectTreeFeature 主要供自动测试或调试直接传入 Feature；
+         * 正常页面操作由 LEFT_CLICK 自动调用。
+         */
+        selectTreeFeature,
+        clearTreeSelection,
+        // ★----------- version5新增结束 ------------
     }
 }

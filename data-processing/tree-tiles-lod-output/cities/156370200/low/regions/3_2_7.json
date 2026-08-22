@@ -1,0 +1,23 @@
+{
+  "asset": {
+    "version": "1.1"
+  },
+  "geometricError": 1000,
+  "root": {
+    "boundingVolume": {
+      "region": [
+        2.091122610045706,
+        0.6430883795129606,
+        2.0936751540767475,
+        0.6460336226257011,
+        75,
+        229
+      ]
+    },
+    "geometricError": 0,
+    "refine": "ADD",
+    "content": {
+      "uri": "../content/3_2_7.glb"
+    }
+  }
+}

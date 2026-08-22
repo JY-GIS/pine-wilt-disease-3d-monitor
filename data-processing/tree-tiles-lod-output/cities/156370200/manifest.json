@@ -1,0 +1,818 @@
+{
+  "version": 1,
+  "city": {
+    "name": "青岛市",
+    "gbCode": "156370200"
+  },
+  "divisions": 8,
+  "rootRegion": [
+    2.0860000686911024,
+    0.6224542244312578,
+    2.1064553275244764,
+    0.646051075918221,
+    5,
+    1023
+  ],
+  "totalInstances": 1055,
+  "nonEmptyCellCount": 22,
+  "scale": 15.0,
+  "metadataProperties": [
+    "tree_id",
+    "disease_level"
+  ],
+  "gradeModelMapping": {
+    "1-2": "pine-green",
+    "3-4": "pine-yellow",
+    "5": "pine-dry"
+  },
+  "dem": {
+    "path": "D:\\pine-wilt-disease-3d-monitor\\downloads\\DEM\\qingdao-dem-12.5.tif",
+    "crs": "EPSG:32650",
+    "pixelSize": [
+      12.5,
+      12.5
+    ],
+    "nodata": -32768.0,
+    "sampleStatusCounts": {
+      "bilinear": 1054,
+      "partial_bilinear": 1
+    }
+  },
+  "verticalDatumAssumption": "DEM values are currently used as Cesium ellipsoid heights; the source DEM vertical datum still needs independent confirmation.",
+  "combinedTilesets": {
+    "low": "low/tileset.json",
+    "high": "high/tileset.json"
+  },
+  "cells": [
+    {
+      "id": "3_0_0",
+      "grid": [
+        0,
+        0
+      ],
+      "treeCount": 33,
+      "center": [
+        119.59493939393938,
+        35.74551515151516,
+        87.72442938710661
+      ],
+      "region": [
+        2.0860175219836226,
+        0.6224716777237776,
+        2.088570066014664,
+        0.6254169208365181,
+        63,
+        225
+      ],
+      "gradeCounts": {
+        "1": 1,
+        "2": 15,
+        "3": 9,
+        "4": 5,
+        "5": 3
+      },
+      "modelCounts": {
+        "green": 16,
+        "yellow": 14,
+        "dry": 3
+      },
+      "lowTilesetUrl": "low/regions/3_0_0.json",
+      "highTilesetUrl": "high/regions/3_0_0.json"
+    },
+    {
+      "id": "3_1_0",
+      "grid": [
+        1,
+        0
+      ],
+      "treeCount": 98,
+      "center": [
+        119.75123469387755,
+        35.80138775510204,
+        118.76350203347576
+      ],
+      "region": [
+        2.088570066014664,
+        0.6224716777237776,
+        2.091122610045706,
+        0.6254169208365181,
+        64,
+        401
+      ],
+      "gradeCounts": {
+        "1": 10,
+        "2": 30,
+        "3": 35,
+        "4": 17,
+        "5": 6
+      },
+      "modelCounts": {
+        "green": 40,
+        "yellow": 52,
+        "dry": 6
+      },
+      "lowTilesetUrl": "low/regions/3_1_0.json",
+      "highTilesetUrl": "high/regions/3_1_0.json"
+    },
+    {
+      "id": "3_1_1",
+      "grid": [
+        1,
+        1
+      ],
+      "treeCount": 66,
+      "center": [
+        119.77371212121213,
+        35.88943939393939,
+        132.76535603089042
+      ],
+      "region": [
+        2.088570066014664,
+        0.6254169208365181,
+        2.091122610045706,
+        0.6283621639492585,
+        71,
+        360
+      ],
+      "gradeCounts": {
+        "1": 7,
+        "2": 20,
+        "3": 25,
+        "4": 12,
+        "5": 2
+      },
+      "modelCounts": {
+        "green": 27,
+        "yellow": 37,
+        "dry": 2
+      },
+      "lowTilesetUrl": "low/regions/3_1_1.json",
+      "highTilesetUrl": "high/regions/3_1_1.json"
+    },
+    {
+      "id": "3_1_2",
+      "grid": [
+        1,
+        2
+      ],
+      "treeCount": 14,
+      "center": [
+        119.7757142857143,
+        36.13735714285714,
+        68.5353900015674
+      ],
+      "region": [
+        2.088570066014664,
+        0.6283621639492585,
+        2.091122610045706,
+        0.631307407061999,
+        54,
+        153
+      ],
+      "gradeCounts": {
+        "1": 0,
+        "2": 6,
+        "3": 4,
+        "4": 2,
+        "5": 2
+      },
+      "modelCounts": {
+        "green": 6,
+        "yellow": 6,
+        "dry": 2
+      },
+      "lowTilesetUrl": "low/regions/3_1_2.json",
+      "highTilesetUrl": "high/regions/3_1_2.json"
+    },
+    {
+      "id": "3_2_0",
+      "grid": [
+        2,
+        0
+      ],
+      "treeCount": 35,
+      "center": [
+        119.85948571428573,
+        35.78977142857143,
+        92.98852700163575
+      ],
+      "region": [
+        2.091122610045706,
+        0.6224716777237776,
+        2.0936751540767475,
+        0.6254169208365181,
+        66,
+        196
+      ],
+      "gradeCounts": {
+        "1": 0,
+        "2": 13,
+        "3": 11,
+        "4": 10,
+        "5": 1
+      },
+      "modelCounts": {
+        "green": 13,
+        "yellow": 21,
+        "dry": 1
+      },
+      "lowTilesetUrl": "low/regions/3_2_0.json",
+      "highTilesetUrl": "high/regions/3_2_0.json"
+    },
+    {
+      "id": "3_2_1",
+      "grid": [
+        2,
+        1
+      ],
+      "treeCount": 76,
+      "center": [
+        119.84327631578947,
+        35.87827631578947,
+        169.80216380854193
+      ],
+      "region": [
+        2.091122610045706,
+        0.6254169208365181,
+        2.0936751540767475,
+        0.6283621639492585,
+        65,
+        433
+      ],
+      "gradeCounts": {
+        "1": 5,
+        "2": 27,
+        "3": 27,
+        "4": 13,
+        "5": 4
+      },
+      "modelCounts": {
+        "green": 32,
+        "yellow": 40,
+        "dry": 4
+      },
+      "lowTilesetUrl": "low/regions/3_2_1.json",
+      "highTilesetUrl": "high/regions/3_2_1.json"
+    },
+    {
+      "id": "3_2_2",
+      "grid": [
+        2,
+        2
+      ],
+      "treeCount": 5,
+      "center": [
+        119.867,
+        36.1542,
+        68.81891582128598
+      ],
+      "region": [
+        2.091122610045706,
+        0.6283621639492585,
+        2.0936751540767475,
+        0.631307407061999,
+        56,
+        151
+      ],
+      "gradeCounts": {
+        "1": 0,
+        "2": 1,
+        "3": 2,
+        "4": 2,
+        "5": 0
+      },
+      "modelCounts": {
+        "green": 1,
+        "yellow": 4,
+        "dry": 0
+      },
+      "lowTilesetUrl": "low/regions/3_2_2.json",
+      "highTilesetUrl": "high/regions/3_2_2.json"
+    },
+    {
+      "id": "3_2_3",
+      "grid": [
+        2,
+        3
+      ],
+      "treeCount": 27,
+      "center": [
+        119.89629629629628,
+        36.20377777777777,
+        81.46546252461391
+      ],
+      "region": [
+        2.091122610045706,
+        0.631307407061999,
+        2.0936751540767475,
+        0.6342526501747394,
+        54,
+        169
+      ],
+      "gradeCounts": {
+        "1": 3,
+        "2": 11,
+        "3": 10,
+        "4": 3,
+        "5": 0
+      },
+      "modelCounts": {
+        "green": 14,
+        "yellow": 13,
+        "dry": 0
+      },
+      "lowTilesetUrl": "low/regions/3_2_3.json",
+      "highTilesetUrl": "high/regions/3_2_3.json"
+    },
+    {
+      "id": "3_2_7",
+      "grid": [
+        2,
+        7
+      ],
+      "treeCount": 30,
+      "center": [
+        119.92176666666666,
+        36.93403333333333,
+        114.38426572163743
+      ],
+      "region": [
+        2.091122610045706,
+        0.6430883795129606,
+        2.0936751540767475,
+        0.6460336226257011,
+        75,
+        229
+      ],
+      "gradeCounts": {
+        "1": 0,
+        "2": 7,
+        "3": 11,
+        "4": 9,
+        "5": 3
+      },
+      "modelCounts": {
+        "green": 7,
+        "yellow": 20,
+        "dry": 3
+      },
+      "lowTilesetUrl": "low/regions/3_2_7.json",
+      "highTilesetUrl": "high/regions/3_2_7.json"
+    },
+    {
+      "id": "3_3_0",
+      "grid": [
+        3,
+        0
+      ],
+      "treeCount": 32,
+      "center": [
+        119.9795625,
+        35.77575,
+        186.68935198112086
+      ],
+      "region": [
+        2.0936751540767475,
+        0.6224716777237776,
+        2.096227698107789,
+        0.6254169208365181,
+        78,
+        434
+      ],
+      "gradeCounts": {
+        "1": 4,
+        "2": 11,
+        "3": 11,
+        "4": 4,
+        "5": 2
+      },
+      "modelCounts": {
+        "green": 15,
+        "yellow": 15,
+        "dry": 2
+      },
+      "lowTilesetUrl": "low/regions/3_3_0.json",
+      "highTilesetUrl": "high/regions/3_3_0.json"
+    },
+    {
+      "id": "3_3_1",
+      "grid": [
+        3,
+        1
+      ],
+      "treeCount": 159,
+      "center": [
+        120.04816981132075,
+        35.96019496855346,
+        153.68890185726127
+      ],
+      "region": [
+        2.0936751540767475,
+        0.6254169208365181,
+        2.096227698107789,
+        0.6283621639492585,
+        5,
+        691
+      ],
+      "gradeCounts": {
+        "1": 25,
+        "2": 45,
+        "3": 44,
+        "4": 24,
+        "5": 21
+      },
+      "modelCounts": {
+        "green": 70,
+        "yellow": 68,
+        "dry": 21
+      },
+      "lowTilesetUrl": "low/regions/3_3_1.json",
+      "highTilesetUrl": "high/regions/3_3_1.json"
+    },
+    {
+      "id": "3_3_2",
+      "grid": [
+        3,
+        2
+      ],
+      "treeCount": 32,
+      "center": [
+        120.0568125,
+        36.021,
+        131.16048807925586
+      ],
+      "region": [
+        2.0936751540767475,
+        0.6283621639492585,
+        2.096227698107789,
+        0.631307407061999,
+        94,
+        288
+      ],
+      "gradeCounts": {
+        "1": 7,
+        "2": 6,
+        "3": 12,
+        "4": 5,
+        "5": 2
+      },
+      "modelCounts": {
+        "green": 13,
+        "yellow": 17,
+        "dry": 2
+      },
+      "lowTilesetUrl": "low/regions/3_3_2.json",
+      "highTilesetUrl": "high/regions/3_3_2.json"
+    },
+    {
+      "id": "3_3_3",
+      "grid": [
+        3,
+        3
+      ],
+      "treeCount": 14,
+      "center": [
+        120.00042857142857,
+        36.20114285714286,
+        77.68192104759132
+      ],
+      "region": [
+        2.0936751540767475,
+        0.631307407061999,
+        2.096227698107789,
+        0.6342526501747394,
+        55,
+        171
+      ],
+      "gradeCounts": {
+        "1": 1,
+        "2": 5,
+        "3": 3,
+        "4": 4,
+        "5": 1
+      },
+      "modelCounts": {
+        "green": 6,
+        "yellow": 7,
+        "dry": 1
+      },
+      "lowTilesetUrl": "low/regions/3_3_3.json",
+      "highTilesetUrl": "high/regions/3_3_3.json"
+    },
+    {
+      "id": "3_3_7",
+      "grid": [
+        3,
+        7
+      ],
+      "treeCount": 71,
+      "center": [
+        120.02145070422534,
+        36.956676056338026,
+        230.67950586882395
+      ],
+      "region": [
+        2.0936751540767475,
+        0.6430883795129606,
+        2.096227698107789,
+        0.6460336226257011,
+        89,
+        618
+      ],
+      "gradeCounts": {
+        "1": 3,
+        "2": 24,
+        "3": 22,
+        "4": 13,
+        "5": 9
+      },
+      "modelCounts": {
+        "green": 27,
+        "yellow": 35,
+        "dry": 9
+      },
+      "lowTilesetUrl": "low/regions/3_3_7.json",
+      "highTilesetUrl": "high/regions/3_3_7.json"
+    },
+    {
+      "id": "3_4_1",
+      "grid": [
+        4,
+        1
+      ],
+      "treeCount": 18,
+      "center": [
+        120.11833333333334,
+        35.967444444444446,
+        155.45508115061355
+      ],
+      "region": [
+        2.096227698107789,
+        0.6254169208365181,
+        2.0987802421388313,
+        0.6283621639492585,
+        95,
+        309
+      ],
+      "gradeCounts": {
+        "1": 4,
+        "2": 5,
+        "3": 4,
+        "4": 3,
+        "5": 2
+      },
+      "modelCounts": {
+        "green": 9,
+        "yellow": 7,
+        "dry": 2
+      },
+      "lowTilesetUrl": "low/regions/3_4_1.json",
+      "highTilesetUrl": "high/regions/3_4_1.json"
+    },
+    {
+      "id": "3_4_2",
+      "grid": [
+        4,
+        2
+      ],
+      "treeCount": 5,
+      "center": [
+        120.1206,
+        36.0424,
+        119.52124800034282
+      ],
+      "region": [
+        2.096227698107789,
+        0.6283621639492585,
+        2.0987802421388313,
+        0.631307407061999,
+        93,
+        220
+      ],
+      "gradeCounts": {
+        "1": 0,
+        "2": 0,
+        "3": 4,
+        "4": 1,
+        "5": 0
+      },
+      "modelCounts": {
+        "green": 0,
+        "yellow": 5,
+        "dry": 0
+      },
+      "lowTilesetUrl": "low/regions/3_4_2.json",
+      "highTilesetUrl": "high/regions/3_4_2.json"
+    },
+    {
+      "id": "3_4_7",
+      "grid": [
+        4,
+        7
+      ],
+      "treeCount": 39,
+      "center": [
+        120.1394358974359,
+        36.93910256410256,
+        145.3100736716144
+      ],
+      "region": [
+        2.096227698107789,
+        0.6430883795129606,
+        2.0987802421388313,
+        0.6460336226257011,
+        78,
+        351
+      ],
+      "gradeCounts": {
+        "1": 5,
+        "2": 12,
+        "3": 12,
+        "4": 8,
+        "5": 2
+      },
+      "modelCounts": {
+        "green": 17,
+        "yellow": 20,
+        "dry": 2
+      },
+      "lowTilesetUrl": "low/regions/3_4_7.json",
+      "highTilesetUrl": "high/regions/3_4_7.json"
+    },
+    {
+      "id": "3_5_2",
+      "grid": [
+        5,
+        2
+      ],
+      "treeCount": 1,
+      "center": [
+        120.386,
+        36.075,
+        17.42034038088751
+      ],
+      "region": [
+        2.0987802421388313,
+        0.6283621639492585,
+        2.101332786169873,
+        0.631307407061999,
+        12,
+        78
+      ],
+      "gradeCounts": {
+        "1": 0,
+        "2": 0,
+        "3": 0,
+        "4": 1,
+        "5": 0
+      },
+      "modelCounts": {
+        "green": 0,
+        "yellow": 1,
+        "dry": 0
+      },
+      "lowTilesetUrl": "low/regions/3_5_2.json",
+      "highTilesetUrl": "high/regions/3_5_2.json"
+    },
+    {
+      "id": "3_6_2",
+      "grid": [
+        6,
+        2
+      ],
+      "treeCount": 21,
+      "center": [
+        120.50980952380954,
+        36.13519047619048,
+        191.5544243486699
+      ],
+      "region": [
+        2.101332786169873,
+        0.6283621639492585,
+        2.1038853302009146,
+        0.631307407061999,
+        116,
+        386
+      ],
+      "gradeCounts": {
+        "1": 0,
+        "2": 8,
+        "3": 8,
+        "4": 2,
+        "5": 3
+      },
+      "modelCounts": {
+        "green": 8,
+        "yellow": 10,
+        "dry": 3
+      },
+      "lowTilesetUrl": "low/regions/3_6_2.json",
+      "highTilesetUrl": "high/regions/3_6_2.json"
+    },
+    {
+      "id": "3_6_3",
+      "grid": [
+        6,
+        3
+      ],
+      "treeCount": 92,
+      "center": [
+        120.5058804347826,
+        36.23044565217391,
+        221.47955922522218
+      ],
+      "region": [
+        2.101332786169873,
+        0.631307407061999,
+        2.1038853302009146,
+        0.6342526501747394,
+        117,
+        509
+      ],
+      "gradeCounts": {
+        "1": 10,
+        "2": 26,
+        "3": 29,
+        "4": 19,
+        "5": 8
+      },
+      "modelCounts": {
+        "green": 36,
+        "yellow": 48,
+        "dry": 8
+      },
+      "lowTilesetUrl": "low/regions/3_6_3.json",
+      "highTilesetUrl": "high/regions/3_6_3.json"
+    },
+    {
+      "id": "3_7_2",
+      "grid": [
+        7,
+        2
+      ],
+      "treeCount": 52,
+      "center": [
+        120.62646153846154,
+        36.14923076923077,
+        371.1284681040951
+      ],
+      "region": [
+        2.1038853302009146,
+        0.6283621639492585,
+        2.1064378742319563,
+        0.631307407061999,
+        118,
+        854
+      ],
+      "gradeCounts": {
+        "1": 7,
+        "2": 7,
+        "3": 27,
+        "4": 7,
+        "5": 4
+      },
+      "modelCounts": {
+        "green": 14,
+        "yellow": 34,
+        "dry": 4
+      },
+      "lowTilesetUrl": "low/regions/3_7_2.json",
+      "highTilesetUrl": "high/regions/3_7_2.json"
+    },
+    {
+      "id": "3_7_3",
+      "grid": [
+        7,
+        3
+      ],
+      "treeCount": 135,
+      "center": [
+        120.60062222222223,
+        36.22457777777778,
+        449.8393196449676
+      ],
+      "region": [
+        2.1038853302009146,
+        0.631307407061999,
+        2.1064378742319563,
+        0.6342526501747394,
+        117,
+        1023
+      ],
+      "gradeCounts": {
+        "1": 12,
+        "2": 22,
+        "3": 54,
+        "4": 36,
+        "5": 11
+      },
+      "modelCounts": {
+        "green": 34,
+        "yellow": 90,
+        "dry": 11
+      },
+      "lowTilesetUrl": "low/regions/3_7_3.json",
+      "highTilesetUrl": "high/regions/3_7_3.json"
+    }
+  ]
+}
