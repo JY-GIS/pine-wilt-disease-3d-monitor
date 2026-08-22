@@ -138,9 +138,7 @@ export function usePineTreesModel3D() {
         if (pineEntities.length === 0) return
         if (pineState.enabled) {
             // 切换为'点'模式
-            pineEntities.forEach((entity) => {
-                entity.show = false
-            })
+            unloadPineEntities(viewer)
             if (treeState.dataSource) { treeState.dataSource.show = true }
             if (treeState.pointPrimitiveCollection) {
                 treeState.pointPrimitiveCollection.show = true
